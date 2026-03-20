@@ -561,6 +561,17 @@ html,body{
   border-radius:var(--radius);padding:14px 16px;
   margin-bottom:8px;
   display:flex;align-items:center;gap:12px;
+  transition:border-color .2s,background .2s;
+}
+.client-card.cli-selectable{cursor:pointer;}
+.client-card.cli-selectable:active{background:rgba(245,158,11,.06);}
+.client-card.cli-selected{
+  background:rgba(245,158,11,.08);
+  border-color:rgba(245,158,11,.5);
+}
+.cli-check{
+  font-size:1.2em;flex-shrink:0;width:28px;
+  display:flex;align-items:center;justify-content:center;
 }
 .client-avatar{
   width:40px;height:40px;border-radius:12px;
@@ -673,6 +684,92 @@ html,body{
   color:var(--text3);font-size:.85em;font-weight:600;
 }
 .section-empty .ico{font-size:3em;margin-bottom:12px}
+
+/* ─── WHATSAPP SECTION ───────────────── */
+.wa-tabs{
+  display:flex;gap:6px;margin-bottom:16px;
+  background:var(--surface);border-radius:var(--radius);
+  padding:5px;border:1px solid var(--border2);
+}
+.wa-tab{
+  flex:1;text-align:center;padding:9px 6px;
+  border-radius:calc(var(--radius) - 3px);
+  font-size:.75em;font-weight:800;color:var(--text3);
+  cursor:pointer;transition:all .2s;letter-spacing:.2px;
+}
+.wa-tab.active{background:var(--gold);color:#000;}
+.wa-tab-content{display:none;}
+.wa-tab-content.active{display:block;}
+.wa-card{
+  background:var(--surface);border:1px solid var(--border2);
+  border-radius:var(--radius);padding:16px;margin-bottom:12px;
+}
+.wa-card-lbl{
+  font-size:.72em;font-weight:800;color:var(--text3);
+  letter-spacing:.6px;text-transform:uppercase;margin-bottom:10px;
+}
+.wa-tpls{
+  display:grid;grid-template-columns:repeat(5,1fr);gap:6px;
+}
+.wa-tpl-btn{
+  background:var(--surface2);border:1px solid var(--border2);
+  border-radius:10px;padding:10px 4px;
+  display:flex;flex-direction:column;align-items:center;gap:4px;
+  font-size:.68em;font-weight:700;color:var(--text2);
+  cursor:pointer;transition:all .2s;text-align:center;
+}
+.wa-tpl-btn:active,.wa-tpl-btn.active{
+  background:rgba(245,158,11,.12);border-color:var(--gold);color:var(--gold);
+}
+.wa-tpl-btn span:first-child{font-size:1.4em;}
+.wa-dest-opts{
+  display:grid;grid-template-columns:1fr 1fr;gap:7px;
+}
+.wa-dest-opt{
+  background:var(--surface2);border:1.5px solid var(--border2);
+  border-radius:10px;padding:10px 12px;
+  font-size:.78em;font-weight:700;color:var(--text2);
+  cursor:pointer;transition:all .2s;
+  display:flex;justify-content:space-between;align-items:center;
+}
+.wa-dest-opt.active{
+  background:rgba(245,158,11,.1);border-color:var(--gold);color:var(--gold);
+}
+.wa-dest-cnt{
+  background:rgba(255,255,255,.1);border-radius:99px;
+  padding:1px 7px;font-size:.85em;font-weight:900;
+}
+.wa-dest-opt.active .wa-dest-cnt{background:rgba(245,158,11,.2);}
+.wa-send-btn{
+  width:100%;padding:15px;
+  background:linear-gradient(135deg,#25d366,#128c7e);
+  border:none;border-radius:var(--radius);
+  color:#fff;font-size:.92em;font-weight:900;
+  cursor:pointer;transition:all .2s;letter-spacing:.3px;
+}
+.wa-send-btn:active{transform:scale(.98);}
+.wa-send-btn:disabled{opacity:.4;cursor:not-allowed;}
+.wa-log-item{
+  display:flex;align-items:center;gap:8px;
+  padding:8px 10px;border-radius:8px;margin-bottom:5px;
+  font-size:.75em;background:var(--surface);border:1px solid var(--border2);
+}
+.wa-log-ok{border-color:rgba(34,197,94,.3);background:rgba(34,197,94,.05);}
+.wa-log-err{border-color:rgba(239,68,68,.3);background:rgba(239,68,68,.05);}
+/* Toggle siesta */
+.wa-toggle{
+  width:52px;height:28px;border-radius:99px;
+  background:var(--surface2);border:1px solid var(--border2);
+  cursor:pointer;position:relative;transition:background .3s;flex-shrink:0;
+}
+.wa-toggle.on{background:var(--green1);}
+.wa-toggle-knob{
+  position:absolute;top:3px;left:3px;
+  width:20px;height:20px;border-radius:50%;
+  background:#fff;transition:left .3s;
+  box-shadow:0 1px 4px rgba(0,0,0,.3);
+}
+.wa-toggle.on .wa-toggle-knob{left:27px;}
 </style>
 </head>
 <body>
@@ -837,11 +934,172 @@ html,body{
       </div>
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
         <span style="font-size:.78em;color:var(--text3);font-weight:700"><span id="cliCount">0</span> clientes</span>
-        <button class="btn btn-ghost btn-sm" onclick="exportClients()">⬇ CSV</button>
+        <div style="display:flex;gap:6px">
+          <button class="btn btn-ghost btn-sm" id="btnCliSel" onclick="toggleCliSelectMode()">☑️ Seleccionar</button>
+          <button class="btn btn-ghost btn-sm" onclick="exportClients()">⬇ CSV</button>
+        </div>
+      </div>
+      <!-- Barra de selección múltiple -->
+      <div id="cliSelBar" style="display:none;background:rgba(251,191,36,.1);border:1px solid rgba(251,191,36,.3);border-radius:12px;padding:10px 14px;margin-bottom:12px;display:none;align-items:center;justify-content:space-between;gap:8px">
+        <span style="font-size:.8em;font-weight:800;color:var(--gold)"><span id="cliSelCount">0</span> seleccionados</span>
+        <div style="display:flex;gap:6px;flex-wrap:wrap">
+          <button class="btn btn-ghost btn-sm" onclick="cliSelAll()">Todos</button>
+          <button class="btn btn-ghost btn-sm" onclick="cliSelNone()">Ninguno</button>
+          <button class="btn btn-ghost btn-sm" onclick="exportCliSelected()">⬇ CSV</button>
+          <button class="btn btn-sm ripple-host" style="background:rgba(239,68,68,.15);color:var(--red2);font-size:.75em" onclick="delCliSelected()">🗑️ Eliminar</button>
+        </div>
       </div>
       <div id="cliList"></div>
     </div>
 
+
+    <!-- ── WHATSAPP ─────────────────── -->
+    <div id="s-whatsapp" class="section">
+
+      <!-- Sub-tabs -->
+      <div class="wa-tabs">
+        <div class="wa-tab active" id="wat-campanas" onclick="waGoTab('campanas')">📣 Campañas</div>
+        <div class="wa-tab" id="wat-siesta" onclick="waGoTab('siesta')">😴 Siesta</div>
+        <div class="wa-tab" id="wat-cfg" onclick="waGoTab('cfg')">⚙️ Config</div>
+      </div>
+
+      <!-- ── TAB: CAMPAÑAS ── -->
+      <div id="wt-campanas" class="wa-tab-content active">
+
+        <!-- Selector sorteo -->
+        <div class="wa-card">
+          <div class="wa-card-lbl">🎰 Sorteo</div>
+          <select id="waSorteoSel" onchange="waCargarSorteo()" style="width:100%;background:var(--surface2);border:1px solid var(--border2);border-radius:var(--radius);padding:10px 12px;color:var(--text1);font-size:.85em;outline:none">
+            <option value="">-- Selecciona un sorteo activo --</option>
+          </select>
+          <div id="waSorteoInfo" style="display:none;margin-top:10px;padding:10px;background:rgba(0,0,0,.2);border-radius:10px;font-size:.78em;color:var(--text2);line-height:1.7"></div>
+        </div>
+
+        <!-- Plantillas -->
+        <div class="wa-card">
+          <div class="wa-card-lbl">📋 Plantilla</div>
+          <div class="wa-tpls">
+            <div class="wa-tpl-btn" onclick="waUsarTpl('sorteo')"><span>📣</span><span>Anuncio</span></div>
+            <div class="wa-tpl-btn" onclick="waUsarTpl('recordatorio')"><span>⏰</span><span>Recordatorio</span></div>
+            <div class="wa-tpl-btn" onclick="waUsarTpl('pocos')"><span>🔥</span><span>Pocos nums</span></div>
+            <div class="wa-tpl-btn" onclick="waUsarTpl('encuesta')"><span>📊</span><span>Encuesta</span></div>
+            <div class="wa-tpl-btn" onclick="waUsarTpl('ganador')"><span>🏆</span><span>Ganador</span></div>
+          </div>
+        </div>
+
+        <!-- Editor de mensaje -->
+        <div class="wa-card">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+            <div class="wa-card-lbl" style="margin:0">✍️ Mensaje</div>
+            <span style="font-size:.7em;color:var(--text3)" id="waMsgLen">0 caracteres</span>
+          </div>
+          <textarea id="waMsgEditor" rows="7" oninput="waActualizarPreview()" placeholder="Selecciona una plantilla o escribe tu mensaje..." style="width:100%;background:var(--surface2);border:1px solid var(--border2);border-radius:var(--radius);padding:10px 12px;color:var(--text1);font-size:.84em;font-family:inherit;outline:none;resize:vertical;line-height:1.6"></textarea>
+          <!-- Preview burbuja -->
+          <div style="margin-top:10px">
+            <div style="font-size:.7em;color:var(--text3);margin-bottom:6px">Vista previa:</div>
+            <div id="waMsgPreview" style="background:#1f4e2e;border-radius:12px 12px 4px 12px;padding:10px 14px;font-size:.82em;color:#e2e8f0;line-height:1.6;white-space:pre-wrap;word-break:break-word;min-height:40px"></div>
+          </div>
+        </div>
+
+        <!-- Destinatarios -->
+        <div class="wa-card">
+          <div class="wa-card-lbl">👥 Destinatarios</div>
+          <div class="wa-dest-opts">
+            <div class="wa-dest-opt active" id="wdopt-todos" onclick="waSelDest('todos')">Todos<span id="wdcnt-todos" class="wa-dest-cnt">0</span></div>
+            <div class="wa-dest-opt" id="wdopt-pendientes" onclick="waSelDest('pendientes')">Con pendientes<span id="wdcnt-pendientes" class="wa-dest-cnt">0</span></div>
+            <div class="wa-dest-opt" id="wdopt-frecuentes" onclick="waSelDest('frecuentes')">Frecuentes<span id="wdcnt-frecuentes" class="wa-dest-cnt">0</span></div>
+            <div class="wa-dest-opt" id="wdopt-fantasmas" onclick="waSelDest('fantasmas')">Nunca compran<span id="wdcnt-fantasmas" class="wa-dest-cnt">0</span></div>
+          </div>
+          <div style="margin-top:8px;font-size:.75em;color:var(--text3)">Se enviará a <strong id="waDestTotal" style="color:var(--gold)">0</strong> clientes</div>
+        </div>
+
+        <!-- Botón enviar -->
+        <button class="wa-send-btn" id="waEnviarBtn" onclick="waEnviarCampana()">
+          📤 Enviar campaña
+        </button>
+
+        <!-- Progreso -->
+        <div id="waProgSection" style="display:none;margin-top:12px">
+          <div style="display:flex;justify-content:space-between;font-size:.75em;color:var(--text3);margin-bottom:6px">
+            <span id="waProgTxt">Enviando...</span>
+            <span id="waProgPct">0%</span>
+          </div>
+          <div style="background:var(--surface2);border-radius:99px;height:6px;overflow:hidden">
+            <div id="waProgBar" style="height:100%;background:var(--green1);border-radius:99px;width:0%;transition:width .3s"></div>
+          </div>
+        </div>
+
+        <!-- Log -->
+        <div id="waLog" style="margin-top:14px;max-height:200px;overflow-y:auto"></div>
+
+      </div><!-- /campanas -->
+
+      <!-- ── TAB: SIESTA ── -->
+      <div id="wt-siesta" class="wa-tab-content">
+        <div class="wa-card">
+          <div style="display:flex;justify-content:space-between;align-items:center">
+            <div>
+              <div style="font-weight:800;font-size:.95em;color:var(--text1)">😴 Modo Siesta</div>
+              <div style="font-size:.75em;color:var(--text3);margin-top:3px">El bot responde por ti mientras descansas</div>
+            </div>
+            <div class="wa-toggle" id="waToggle" onclick="waCambiarSiesta()">
+              <div class="wa-toggle-knob"></div>
+            </div>
+          </div>
+          <div id="waSiestaStatus" style="margin-top:12px;padding:10px;border-radius:10px;background:rgba(0,0,0,.2);font-size:.78em;color:var(--text3);text-align:center">
+            🔴 Bot desactivado
+          </div>
+        </div>
+        <div class="wa-card">
+          <div class="wa-card-lbl">💬 Mensaje automático del bot</div>
+          <div style="font-size:.73em;color:var(--text3);margin-bottom:8px">Este mensaje lo usa el bot cuando alguien escribe y estás en modo siesta</div>
+          <textarea id="waSiestaMsg" rows="5" style="width:100%;background:var(--surface2);border:1px solid var(--border2);border-radius:var(--radius);padding:10px 12px;color:var(--text1);font-size:.84em;font-family:inherit;outline:none;resize:vertical;line-height:1.6">¡Hola! 👋 Gracias por escribir a *Bol$illo Lleno*.
+
+En este momento estoy revisando todo. En breve te atiendo 🙏
+
+Mientras tanto puedes ver los sorteos activos en nuestra página 👇</textarea>
+          <button class="btn btn-gold ripple-host" style="width:100%;margin-top:10px" onclick="waGuardarSiesta()">💾 Guardar mensaje</button>
+        </div>
+        <div class="wa-card">
+          <div class="wa-card-lbl">🤖 ¿Cómo se identifica el bot?</div>
+          <div style="display:flex;flex-direction:column;gap:8px;margin-top:4px">
+            <label style="display:flex;align-items:center;gap:10px;cursor:pointer;font-size:.84em">
+              <input type="radio" name="waIdentidad" value="camilo" checked style="accent-color:var(--gold)"> Como Camilo (personal)
+            </label>
+            <label style="display:flex;align-items:center;gap:10px;cursor:pointer;font-size:.84em">
+              <input type="radio" name="waIdentidad" value="asistente" style="accent-color:var(--gold)"> Como Asistente de Bol$illo Lleno
+            </label>
+          </div>
+        </div>
+      </div><!-- /siesta -->
+
+      <!-- ── TAB: CONFIG ── -->
+      <div id="wt-cfg" class="wa-tab-content">
+        <div class="wa-card">
+          <div class="wa-card-lbl">🔑 Credenciales Meta</div>
+          <div class="fg" style="margin-bottom:12px">
+            <label>Token de acceso</label>
+            <input type="password" id="waCfgToken" placeholder="EAAxxxxx..." style="background:var(--surface2);border:1px solid var(--border2);border-radius:var(--radius);padding:10px 12px;color:var(--text1);font-size:.84em;width:100%;outline:none">
+          </div>
+          <div class="fg" style="margin-bottom:12px">
+            <label>Phone Number ID</label>
+            <input type="text" id="waCfgPhoneId" placeholder="1234567890" style="background:var(--surface2);border:1px solid var(--border2);border-radius:var(--radius);padding:10px 12px;color:var(--text1);font-size:.84em;width:100%;outline:none">
+          </div>
+          <div class="fg" style="margin-bottom:16px">
+            <label>Número WhatsApp Business (sin +)</label>
+            <input type="text" id="waCfgNumero" placeholder="573237207391" style="background:var(--surface2);border:1px solid var(--border2);border-radius:var(--radius);padding:10px 12px;color:var(--text1);font-size:.84em;width:100%;outline:none">
+          </div>
+          <button class="btn btn-gold ripple-host" style="width:100%" onclick="waGuardarConfig()">💾 Guardar config</button>
+        </div>
+        <div class="wa-card">
+          <div class="wa-card-lbl">🧪 Probar conexión</div>
+          <div style="font-size:.75em;color:var(--text3);margin-bottom:10px">Envía un mensaje de prueba a tu propio número</div>
+          <button class="btn btn-ghost btn-sm ripple-host" style="width:100%" onclick="waTestConexion()">📡 Enviar mensaje de prueba</button>
+          <div id="waCfgTestResult" style="margin-top:8px;font-size:.75em;min-height:16px;text-align:center"></div>
+        </div>
+      </div><!-- /cfg -->
+
+    </div><!-- /s-whatsapp -->
   </div><!-- /content -->
 
   <!-- BOTTOM NAV -->
@@ -866,6 +1124,10 @@ html,body{
     <div class="nav-btn ripple-host" id="nb-clientes" onclick="goTo('clientes');showFab(true,'cliente')">
       <div class="nav-ico">👥</div>
       <div class="nav-label">Clientes</div>
+    </div>
+    <div class="nav-btn ripple-host" id="nb-whatsapp" onclick="goTo('whatsapp')">
+      <div class="nav-ico">📲</div>
+      <div class="nav-label">WhatsApp</div>
     </div>
   </div>
 
@@ -1178,7 +1440,8 @@ const tbInfo={
   sorteos:['Sorteos','Gestionar sorteos'],
   nums:['Números','Control de números'],
   combos:['Combos','Precios especiales'],
-  clientes:['Clientes','Base de datos']
+  clientes:['Clientes','Base de datos'],
+  whatsapp:['WhatsApp','Campañas y automatización']
 };
 
 function goTo(sec){
@@ -1194,6 +1457,7 @@ function goTo(sec){
   if(sec==='sorteos'){showFab(true,'sorteo');}
   else if(sec==='clientes'){showFab(true,'cliente');}
   else{showFab(false);}
+  if(sec==='whatsapp'){initWhatsapp();}
   content.scrollTo(0,0);
 }
 
@@ -1508,6 +1772,72 @@ function resetCombos(){
 }
 
 /* ── CLIENTES ────────────────────── */
+/* ── MULTI-SELECT CLIENTES ─────────── */
+let cliSelectMode=false, cliSelected=new Set();
+
+function toggleCliSelectMode(){
+  cliSelectMode=!cliSelectMode;
+  cliSelected.clear();
+  const btn=document.getElementById('btnCliSel');
+  const bar=document.getElementById('cliSelBar');
+  if(btn) btn.textContent=cliSelectMode?'✕ Cancelar':'☑️ Seleccionar';
+  if(bar) bar.style.display=cliSelectMode?'flex':'none';
+  renderClients();
+}
+
+function toggleCliItem(key){
+  if(cliSelected.has(key)) cliSelected.delete(key);
+  else cliSelected.add(key);
+  const cnt=document.getElementById('cliSelCount');
+  if(cnt) cnt.textContent=cliSelected.size;
+  // actualizar visual del card
+  const card=document.querySelector(`[data-cli-key="${key}"]`);
+  if(card) card.classList.toggle('cli-selected', cliSelected.has(key));
+}
+
+function cliSelAll(){
+  const q=(document.getElementById('cliSearch').value||'').toLowerCase();
+  let list=clientesDB;
+  if(q) list=list.filter(c=>(c.nombre||'').toLowerCase().includes(q)||(c.telefono||'').includes(q));
+  list.forEach(c=>cliSelected.add(c._key));
+  const cnt=document.getElementById('cliSelCount');
+  if(cnt) cnt.textContent=cliSelected.size;
+  renderClients();
+}
+
+function cliSelNone(){
+  cliSelected.clear();
+  const cnt=document.getElementById('cliSelCount');
+  if(cnt) cnt.textContent=0;
+  renderClients();
+}
+
+function exportCliSelected(){
+  if(!cliSelected.size){snack('Selecciona al menos un cliente','err');return;}
+  const rows=[['Nombre','Teléfono','Última compra']];
+  clientesDB.filter(c=>cliSelected.has(c._key)).forEach(c=>rows.push([c.nombre||'',c.telefono||'',c.ultimaCompra?new Date(c.ultimaCompra).toLocaleDateString('es-CO'):'']));
+  dlCSV('clientes_seleccionados.csv',rows);
+  snack(`${cliSelected.size} clientes exportados`);
+}
+
+function delCliSelected(){
+  if(!cliSelected.size){snack('Selecciona al menos un cliente','err');return;}
+  if(!confirm(`¿Eliminar ${cliSelected.size} cliente(s) seleccionados?`))return;
+  load(true);
+  const updates={};
+  cliSelected.forEach(k=>{ updates['clientesDB/'+k]=null; });
+  db.ref().update(updates).then(()=>{
+    load(false);
+    snack(`${cliSelected.size} clientes eliminados`);
+    cliSelected.clear();
+    cliSelectMode=false;
+    const btn=document.getElementById('btnCliSel');
+    const bar=document.getElementById('cliSelBar');
+    if(btn) btn.textContent='☑️ Seleccionar';
+    if(bar) bar.style.display='none';
+  }).catch(e=>{load(false);snack('Error','err');console.error(e)});
+}
+
 function renderClients(){
   const cont=document.getElementById('cliList');
   const q=(document.getElementById('cliSearch').value||'').toLowerCase();
@@ -1524,17 +1854,17 @@ function renderClients(){
     return Math.floor(diff/1440)+'d';
   };
   cont.innerHTML=list.map(c=>`
-    <div class="client-card">
-      <div class="client-avatar">${(c.nombre||'?').charAt(0).toUpperCase()}</div>
+    <div class="client-card${cliSelectMode?' cli-selectable':''}${cliSelected.has(c._key)?' cli-selected':''}" data-cli-key="${c._key}" ${cliSelectMode?`onclick="toggleCliItem('${c._key}')"`:''}>
+      ${cliSelectMode?`<div class="cli-check">${cliSelected.has(c._key)?'✅':'⬜'}</div>`:`<div class="client-avatar">${(c.nombre||'?').charAt(0).toUpperCase()}</div>`}
       <div class="client-info">
         <div class="cn">${c.nombre||'Sin nombre'}</div>
         <div class="ct">📱 ${c.telefono||'Sin teléfono'}${c.ultimaCompra?` · <span style="color:var(--green2)">${fmtAgo(c.ultimaCompra)}</span>`:''}
         </div>
       </div>
-      <div class="client-actions">
+      ${!cliSelectMode?`<div class="client-actions">
         <button class="btn btn-ghost btn-ico btn-sm ripple-host" title="Editar" onclick="openEditCliente('${c._key}')">✏️</button>
         <button class="btn btn-ico btn-sm ripple-host" style="background:rgba(239,68,68,.1);color:var(--red2)" title="Eliminar" onclick="delCliente('${c._key}','${(c.nombre||'').replace(/'/g,"\\'")}')">🗑️</button>
-      </div>
+      </div>`:''}
     </div>
   `).join('');
 }
@@ -2022,6 +2352,360 @@ function _roundRect(ctx,x,y,w,h,r){
   ctx.quadraticCurveTo(x,y,x+r,y);
   ctx.closePath();
 }
+
+/* ══════════════════════════════════════
+   WHATSAPP SECTION — JS
+══════════════════════════════════════ */
+let waDestino='todos', waSiestaActiva=false, waTplActual='';
+
+// ── Inicializar al entrar a la sección ──
+function initWhatsapp(){
+  waCargarConfig();
+  waCargarSorteos();
+  waContarDestinatarios();
+  waCargarEstadoSiesta();
+}
+
+// ── Sub-tabs ──
+function waGoTab(tab){
+  document.querySelectorAll('.wa-tab').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.wa-tab-content').forEach(t=>t.classList.remove('active'));
+  document.getElementById('wat-'+tab).classList.add('active');
+  document.getElementById('wt-'+tab).classList.add('active');
+}
+
+// ── Cargar sorteos en el selector ──
+function waCargarSorteos(){
+  const sel=document.getElementById('waSorteoSel');
+  if(!sel)return;
+  sel.innerHTML='<option value="">-- Selecciona un sorteo activo --</option>';
+  sorteos.forEach(s=>{
+    const opt=document.createElement('option');
+    opt.value=s.id;
+    opt.textContent=s.name;
+    sel.appendChild(opt);
+  });
+}
+
+// ── Cargar info del sorteo seleccionado ──
+function waCargarSorteo(){
+  const id=document.getElementById('waSorteoSel').value;
+  const info=document.getElementById('waSorteoInfo');
+  if(!id){info.style.display='none';return;}
+  const s=sorteos.find(x=>x.id===id);
+  if(!s){info.style.display='none';return;}
+  const fecha=s.fecha?new Date(s.fecha).toLocaleString('es-CO',{dateStyle:'short',timeStyle:'short'}):'—';
+  info.style.display='block';
+  info.innerHTML=`
+    🏆 Premio: <strong style="color:var(--gold)">$${parseInt(s.premioMayor||0).toLocaleString()}</strong><br>
+    💰 Precio: <strong>$${parseInt(s.precioNumero||2000).toLocaleString()}</strong> por número<br>
+    ⏰ Cierre: <strong>${fecha}</strong>
+  `;
+  // Actualizar plantilla activa si hay una seleccionada
+  if(waTplActual) waUsarTpl(waTplActual);
+}
+
+// ── Plantillas ──
+const waTpls={
+  sorteo:(s,url)=>`🎟️ *¡NUEVO SORTEO DISPONIBLE!* 🎟️
+
+Hola! Te invito a participar en *${s.name}*
+
+🏆 Premio Mayor: *$${parseInt(s.premioMayor||0).toLocaleString()}*
+💰 Precio por número: *$${parseInt(s.precioNumero||2000).toLocaleString()}*
+⏰ Cierre: *${s.fecha?new Date(s.fecha).toLocaleString('es-CO',{dateStyle:'short',timeStyle:'short'}):'próximamente'}*
+
+Elige tu número aquí 👇
+🔗 ${url}
+
+🍀 ¡Que la suerte te acompañe!`,
+
+  recordatorio:(s,url)=>`⏰ *RECORDATORIO DE PAGO* ⏰
+
+Hola! Tienes un número reservado en *${s.name}* que aún no ha sido pagado.
+
+⏰ El sorteo cierra: *${s.fecha?new Date(s.fecha).toLocaleString('es-CO',{dateStyle:'short',timeStyle:'short'}):'pronto'}*
+
+Si no realizas el pago a tiempo, tu número será liberado 😕
+
+💚 Paga por Nequi: *3502429433*
+🔑 Bre-B: *@NEQUICAM8170*
+👤 Titular: *Camilo Andres Martinez Cordoba*
+
+¡Aún estás a tiempo! 🙏`,
+
+  pocos:(s,url)=>`🔥 *¡ÚLTIMOS NÚMEROS DISPONIBLES!* 🔥
+
+Hola! El sorteo *${s.name}* está casi lleno.
+
+🏆 Premio: *$${parseInt(s.premioMayor||0).toLocaleString()}*
+
+No te quedes por fuera, elige tu número ahora 👇
+🔗 ${url}
+
+⚡ ¡Se están agotando!`,
+
+  encuesta:(_s,_url)=>`📊 *ENCUESTA RÁPIDA* 📊
+
+Hola! Quiero conocer tu opinión para mejorar los sorteos 🙏
+
+¿Qué tipo de premio te gustaría más?
+
+*A)* 💰 Premio en efectivo
+*B)* 📱 Electrodoméstico
+*C)* 🛒 Mercado completo
+
+Responde con la letra de tu preferencia 😊`,
+
+  ganador:(s,_url)=>`🏆 *¡TENEMOS GANADOR!* 🏆
+
+¡Felicitaciones al afortunado del sorteo *${s.name}*! 🎉
+
+El premio fue entregado exitosamente ✅
+
+Gracias a todos los participantes 🙏
+¡Muy pronto nuevo sorteo! 
+
+🍀 *Bol$illo Lleno — Sorteos Bendecidos*`
+};
+
+function waUsarTpl(tipo){
+  waTplActual=tipo;
+  document.querySelectorAll('.wa-tpl-btn').forEach(b=>b.classList.remove('active'));
+  const btns=document.querySelectorAll('.wa-tpl-btn');
+  const tipos=['sorteo','recordatorio','pocos','encuesta','ganador'];
+  const idx=tipos.indexOf(tipo);
+  if(btns[idx]) btns[idx].classList.add('active');
+  const id=document.getElementById('waSorteoSel').value;
+  const s=sorteos.find(x=>x.id===id)||{name:'[Nombre sorteo]',premioMayor:0,precioNumero:2000};
+  const url=`https://bolsillolleno.com/sorteo/${(s.name||'').toLowerCase().replace(/\s+/g,'-')}`;
+  const fn=waTpls[tipo];
+  if(fn){
+    const msg=fn(s,url);
+    document.getElementById('waMsgEditor').value=msg;
+    waActualizarPreview();
+  }
+}
+
+function waActualizarPreview(){
+  const msg=document.getElementById('waMsgEditor').value||'';
+  const preview=document.getElementById('waMsgPreview');
+  const len=document.getElementById('waMsgLen');
+  if(preview) preview.textContent=msg;
+  if(len) len.textContent=msg.length+' caracteres';
+}
+
+// ── Destinatarios ──
+function waSelDest(tipo){
+  waDestino=tipo;
+  document.querySelectorAll('.wa-dest-opt').forEach(o=>o.classList.remove('active'));
+  const opt=document.getElementById('wdopt-'+tipo);
+  if(opt) opt.classList.add('active');
+  waContarDestinatarios();
+}
+
+function waContarDestinatarios(){
+  const total=clientesDB.length;
+  const conTel=clientesDB.filter(c=>c.telefono&&c.telefono.length>6);
+
+  // Contar pendientes del sorteo seleccionado
+  const sorteoId=document.getElementById('waSorteoSel')?.value;
+  let conPendientes=0;
+  if(sorteoId && pending){
+    const nums=Object.values(pending[sorteoId]||{});
+    const tels=new Set(nums.map(n=>n.telefono).filter(Boolean));
+    conPendientes=conTel.filter(c=>tels.has(c.telefono)).length;
+  }
+
+  // Frecuentes: más de 3 compras (compras = veces en occupied)
+  const frecuentes=conTel.filter(c=>{
+    let count=0;
+    Object.values(occupied||{}).forEach(nums=>{
+      Object.values(nums||{}).forEach(n=>{ if(n.telefono===c.telefono) count++; });
+    });
+    return count>=3;
+  }).length;
+
+  // Fantasmas: están en BD pero nunca han comprado
+  const fantasmas=conTel.filter(c=>{
+    let found=false;
+    Object.values(occupied||{}).forEach(nums=>{
+      Object.values(nums||{}).forEach(n=>{ if(n.telefono===c.telefono) found=true; });
+    });
+    return !found;
+  }).length;
+
+  const cnts={todos:conTel.length, pendientes:conPendientes, frecuentes, fantasmas};
+  Object.entries(cnts).forEach(([k,v])=>{
+    const el=document.getElementById('wdcnt-'+k);
+    if(el) el.textContent=v;
+  });
+  const dest=document.getElementById('waDestTotal');
+  if(dest) dest.textContent=cnts[waDestino]||0;
+}
+
+// ── Enviar campaña ──
+async function waEnviarCampana(){
+  const msg=document.getElementById('waMsgEditor').value.trim();
+  if(!msg){snack('Escribe un mensaje primero','err');return;}
+
+  const {token,phoneId}=waGetConfig();
+  if(!token||!phoneId){snack('Configura el token de Meta primero','err');waGoTab('cfg');return;}
+
+  const sorteoId=document.getElementById('waSorteoSel').value;
+  let destinatarios=clientesDB.filter(c=>c.telefono&&c.telefono.length>6);
+
+  if(waDestino==='pendientes'&&sorteoId){
+    const tels=new Set(Object.values(pending[sorteoId]||{}).map(n=>n.telefono).filter(Boolean));
+    destinatarios=destinatarios.filter(c=>tels.has(c.telefono));
+  } else if(waDestino==='frecuentes'){
+    destinatarios=destinatarios.filter(c=>{
+      let count=0;
+      Object.values(occupied||{}).forEach(nums=>{
+        Object.values(nums||{}).forEach(n=>{ if(n.telefono===c.telefono) count++; });
+      });
+      return count>=3;
+    });
+  } else if(waDestino==='fantasmas'){
+    destinatarios=destinatarios.filter(c=>{
+      let found=false;
+      Object.values(occupied||{}).forEach(nums=>{
+        Object.values(nums||{}).forEach(n=>{ if(n.telefono===c.telefono) found=true; });
+      });
+      return !found;
+    });
+  }
+
+  if(!destinatarios.length){snack('No hay destinatarios en este segmento','err');return;}
+  if(!confirm(`¿Enviar a ${destinatarios.length} cliente(s)?`))return;
+
+  const btn=document.getElementById('waEnviarBtn');
+  const progSec=document.getElementById('waProgSection');
+  const progBar=document.getElementById('waProgBar');
+  const progTxt=document.getElementById('waProgTxt');
+  const progPct=document.getElementById('waProgPct');
+  const log=document.getElementById('waLog');
+
+  btn.disabled=true;
+  progSec.style.display='block';
+  log.innerHTML='';
+  let ok=0,err=0;
+
+  for(let i=0;i<destinatarios.length;i++){
+    const c=destinatarios[i];
+    const pct=Math.round(((i+1)/destinatarios.length)*100);
+    progBar.style.width=pct+'%';
+    progTxt.textContent=`Enviando a ${c.nombre||c.telefono}...`;
+    progPct.textContent=pct+'%';
+
+    try{
+      const tel=c.telefono.replace(/\D/g,'');
+      const numFinal=tel.startsWith('57')?tel:'57'+tel;
+      const res=await fetch(`https://graph.facebook.com/v18.0/${phoneId}/messages`,{
+        method:'POST',
+        headers:{'Content-Type':'application/json','Authorization':'Bearer '+token},
+        body:JSON.stringify({messaging_product:'whatsapp',to:numFinal,type:'text',text:{body:msg,preview_url:false}})
+      });
+      const data=await res.json();
+      if(data.messages){
+        ok++;
+        log.innerHTML+=`<div class="wa-log-item wa-log-ok">✅ <strong>${c.nombre||c.telefono}</strong> — enviado</div>`;
+      } else {
+        err++;
+        const errMsg=data.error?.message||'Error';
+        log.innerHTML+=`<div class="wa-log-item wa-log-err">❌ <strong>${c.nombre||c.telefono}</strong> — ${errMsg}</div>`;
+      }
+    } catch(e){
+      err++;
+      log.innerHTML+=`<div class="wa-log-item wa-log-err">❌ <strong>${c.nombre||c.telefono}</strong> — Error de red</div>`;
+    }
+    log.scrollTop=log.scrollHeight;
+    await new Promise(r=>setTimeout(r,600));
+  }
+
+  btn.disabled=false;
+  progTxt.textContent=`Completado: ${ok} enviados, ${err} errores`;
+  snack(`✅ ${ok} mensajes enviados`);
+}
+
+// ── Config ──
+function waGetConfig(){
+  const token=localStorage.getItem('wa_token')||'';
+  const phoneId=localStorage.getItem('wa_phoneId')||'';
+  const numero=localStorage.getItem('wa_numero')||'';
+  return{token,phoneId,numero};
+}
+
+function waCargarConfig(){
+  const{token,phoneId,numero}=waGetConfig();
+  const t=document.getElementById('waCfgToken');
+  const p=document.getElementById('waCfgPhoneId');
+  const n=document.getElementById('waCfgNumero');
+  if(t)t.value=token;
+  if(p)p.value=phoneId;
+  if(n)n.value=numero;
+}
+
+function waGuardarConfig(){
+  const token=document.getElementById('waCfgToken').value.trim();
+  const phoneId=document.getElementById('waCfgPhoneId').value.trim();
+  const numero=document.getElementById('waCfgNumero').value.trim();
+  if(!token||!phoneId){snack('Completa token y Phone ID','err');return;}
+  localStorage.setItem('wa_token',token);
+  localStorage.setItem('wa_phoneId',phoneId);
+  localStorage.setItem('wa_numero',numero);
+  snack('Configuración guardada ✅');
+}
+
+async function waTestConexion(){
+  const{token,phoneId,numero}=waGetConfig();
+  const res=document.getElementById('waCfgTestResult');
+  if(!token||!phoneId||!numero){res.style.color='var(--red2)';res.textContent='⚠️ Completa token, Phone ID y número';return;}
+  res.style.color='var(--text3)';res.textContent='Enviando...';
+  try{
+    const r=await fetch(`https://graph.facebook.com/v18.0/${phoneId}/messages`,{
+      method:'POST',
+      headers:{'Content-Type':'application/json','Authorization':'Bearer '+token},
+      body:JSON.stringify({messaging_product:'whatsapp',to:numero,type:'text',text:{body:'🧪 Prueba de conexión Bol$illo Lleno ✅'}})
+    });
+    const d=await r.json();
+    if(d.messages){res.style.color='var(--green2)';res.textContent='✅ Conexión exitosa!';}
+    else{res.style.color='var(--red2)';res.textContent='❌ '+(d.error?.message||'Error');}
+  }catch(e){res.style.color='var(--red2)';res.textContent='❌ Error de red';}
+}
+
+// ── Modo Siesta ──
+function waCargarEstadoSiesta(){
+  waSiestaActiva=localStorage.getItem('wa_siesta')==='true';
+  const toggle=document.getElementById('waToggle');
+  const status=document.getElementById('waSiestaStatus');
+  const msg=document.getElementById('waSiestaMsg');
+  if(toggle) toggle.classList.toggle('on',waSiestaActiva);
+  if(status){
+    status.textContent=waSiestaActiva?'🟢 Bot activo — respondiendo por ti':'🔴 Bot desactivado';
+    status.style.color=waSiestaActiva?'var(--green2)':'var(--text3)';
+  }
+  const savedMsg=localStorage.getItem('wa_siesta_msg');
+  if(savedMsg&&msg) msg.value=savedMsg;
+  db.ref('wa_siesta').set({activa:waSiestaActiva});
+}
+
+function waCambiarSiesta(){
+  waSiestaActiva=!waSiestaActiva;
+  localStorage.setItem('wa_siesta',waSiestaActiva);
+  waCargarEstadoSiesta();
+  snack(waSiestaActiva?'😴 Modo siesta activado':'⏹️ Modo siesta desactivado');
+}
+
+function waGuardarSiesta(){
+  const msg=document.getElementById('waSiestaMsg').value.trim();
+  if(!msg){snack('Escribe un mensaje','err');return;}
+  localStorage.setItem('wa_siesta_msg',msg);
+  db.ref('wa_siesta/mensaje').set(msg);
+  snack('Mensaje guardado ✅');
+}
+/* ── FIN WHATSAPP JS ── */
+
 </script>
 </body>
 </html>
