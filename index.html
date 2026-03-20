@@ -2409,24 +2409,37 @@ function waCargarSorteo(){
 const waTpls={
   sorteo:(s,url)=>`🎟️ *¡NUEVO SORTEO DISPONIBLE!* 🎟️
 
-Hola! Te invito a participar en *${s.name}*
+Hola! Te invito al sorteo *${s.name}* 🍀
 
 🏆 Premio Mayor: *$${parseInt(s.premioMayor||0).toLocaleString()}*
 💰 Precio por número: *$${parseInt(s.precioNumero||2000).toLocaleString()}*
 ⏰ Cierre: *${s.fecha?new Date(s.fecha).toLocaleString('es-CO',{dateStyle:'short',timeStyle:'short'}):'próximamente'}*
 
-Elige tu número aquí 👇
+*5 MANERAS DE GANAR* 🤑
+
+💰 *PREMIO MAYOR:* Si aciertas las últimas 2 cifras
+✨ *SECO 1:* Si aciertas las primeras 2 cifras
+✨ *SECO 2:* Si aciertas las dos cifras del medio
+✨ *SECO 3:* Si aciertas la primera y la última cifra
+✨ *SECO 4:* Si aciertas las últimas 2 cifras invertidas
+
+¡Tienes 5 oportunidades de ganar con un solo número! 💪
+
+Elige el tuyo aquí 👇
 🔗 ${url}
 
-🍀 ¡Que la suerte te acompañe!`,
+🍀 *Bol$illo Lleno x5 — Sorteos Bendecidos*`,
 
   recordatorio:(s,url)=>`⏰ *RECORDATORIO DE PAGO* ⏰
 
-Hola! Tienes un número reservado en *${s.name}* que aún no ha sido pagado.
+Hola! Tienes un número reservado en *${s.name}* pendiente de pago.
+
+Recuerda que tienes *5 maneras de ganar* 🤑
+💰 Premio Mayor · ✨ Seco 1 · ✨ Seco 2 · ✨ Seco 3 · ✨ Seco 4
 
 ⏰ El sorteo cierra: *${s.fecha?new Date(s.fecha).toLocaleString('es-CO',{dateStyle:'short',timeStyle:'short'}):'pronto'}*
 
-Si no realizas el pago a tiempo, tu número será liberado 😕
+⚠️ Si no pagas a tiempo tu número será liberado.
 
 💚 Paga por Nequi: *3502429433*
 🔑 Bre-B: *@NEQUICAM8170*
@@ -2436,24 +2449,32 @@ Si no realizas el pago a tiempo, tu número será liberado 😕
 
   pocos:(s,url)=>`🔥 *¡ÚLTIMOS NÚMEROS DISPONIBLES!* 🔥
 
-Hola! El sorteo *${s.name}* está casi lleno.
+Hola! El sorteo *${s.name}* está casi lleno y aún puedes entrar 👀
 
-🏆 Premio: *$${parseInt(s.premioMayor||0).toLocaleString()}*
+💰 Premio Mayor: *$${parseInt(s.premioMayor||0).toLocaleString()}*
 
-No te quedes por fuera, elige tu número ahora 👇
+No olvides que tienes *5 maneras de ganar* 🤑
+💰 Premio Mayor · ✨ Seco 1 · ✨ Seco 2 · ✨ Seco 3 · ✨ Seco 4
+
+¡Con un solo número tienes 5 oportunidades! 💪
+
+Elige el tuyo antes de que se agoten 👇
 🔗 ${url}
 
-⚡ ¡Se están agotando!`,
+⚡ ¡Date prisa!`,
 
   encuesta:(_s,_url)=>`📊 *ENCUESTA RÁPIDA* 📊
 
-Hola! Quiero conocer tu opinión para mejorar los sorteos 🙏
+Hola! Quiero mejorar los sorteos para ti 🙏
 
-¿Qué tipo de premio te gustaría más?
+En *Bol$illo Lleno x5* tienes *5 maneras de ganar* con cada número 🤑
+
+¿Qué premio te gustaría más en el próximo sorteo?
 
 *A)* 💰 Premio en efectivo
 *B)* 📱 Electrodoméstico
 *C)* 🛒 Mercado completo
+*D)* 💳 Recarga de saldo
 
 Responde con la letra de tu preferencia 😊`,
 
@@ -2464,10 +2485,13 @@ Responde con la letra de tu preferencia 😊`,
 El premio fue entregado exitosamente ✅
 
 Gracias a todos los participantes 🙏
+Recuerden que siempre tienen *5 maneras de ganar* con cada número 🤑
+
+💰 Premio Mayor · ✨ Seco 1 · ✨ Seco 2 · ✨ Seco 3 · ✨ Seco 4
+
 ¡Muy pronto nuevo sorteo! 
 
-🍀 *Bol$illo Lleno — Sorteos Bendecidos*`
-};
+🍀 *Bol$illo Lleno x5 — Sorteos Bendecidos*`;
 
 function waUsarTpl(tipo){
   waTplActual=tipo;
@@ -2478,7 +2502,7 @@ function waUsarTpl(tipo){
   if(btns[idx]) btns[idx].classList.add('active');
   const id=document.getElementById('waSorteoSel').value;
   const s=sorteos.find(x=>x.id===id)||{name:'[Nombre sorteo]',premioMayor:0,precioNumero:2000};
-  const url=`https://bolsillolleno.com/sorteo/${(s.name||'').toLowerCase().replace(/\s+/g,'-')}`;
+  const url='https://bolsillolleno.github.io/SorteosBolsilloLleno/';
   const fn=waTpls[tipo];
   if(fn){
     const msg=fn(s,url);
