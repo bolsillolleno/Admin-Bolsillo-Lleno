@@ -690,9 +690,12 @@ html,body{
   display:flex;gap:6px;margin-bottom:16px;
   background:var(--surface);border-radius:var(--radius);
   padding:5px;border:1px solid var(--border2);
+  overflow-x:auto;-webkit-overflow-scrolling:touch;
+  scrollbar-width:none;
 }
+.wa-tabs::-webkit-scrollbar{display:none;}
 .wa-tab{
-  flex:1;text-align:center;padding:9px 6px;
+  flex:0 0 auto;text-align:center;padding:9px 10px;
   border-radius:calc(var(--radius) - 3px);
   font-size:.75em;font-weight:800;color:var(--text3);
   cursor:pointer;transition:all .2s;letter-spacing:.2px;
@@ -960,6 +963,8 @@ html,body{
       <div class="wa-tabs">
         <div class="wa-tab active" id="wat-campanas" onclick="waGoTab('campanas')">📣 Campañas</div>
         <div class="wa-tab" id="wat-siesta" onclick="waGoTab('siesta')">😴 Siesta</div>
+        <div class="wa-tab" id="wat-bot" onclick="waGoTab('bot');initBotChat()">🤖 Bot</div>
+        <div class="wa-tab" id="wat-kb" onclick="waGoTab('kb');initKB()">📚 Enseñar</div>
         <div class="wa-tab" id="wat-stats" onclick="waGoTab('stats');initWaStats()">📊 Stats</div>
         <div class="wa-tab" id="wat-cfg" onclick="waGoTab('cfg')">⚙️ Config</div>
       </div>
@@ -1099,6 +1104,50 @@ Mientras tanto puedes ver los sorteos activos en nuestra página 👇</textarea>
           <div id="waCfgTestResult" style="margin-top:8px;font-size:.75em;min-height:16px;text-align:center"></div>
         </div>
       </div><!-- /cfg -->
+
+      <!-- ── TAB: BOT CHAT ── -->
+      <div id="wt-bot" class="wa-tab-content">
+        <div class="wa-card" style="margin-bottom:10px">
+          <div style="display:flex;align-items:center;justify-content:space-between">
+            <div>
+              <div style="font-weight:800;font-size:.88em;color:var(--text1)">🤖 Chat de prueba</div>
+              <div style="font-size:.72em;color:var(--text3);margin-top:2px">Habla con el bot como si fueras un cliente</div>
+            </div>
+            <button class="btn btn-ghost btn-sm" onclick="limpiarBotChat()">🗑️ Limpiar</button>
+          </div>
+        </div>
+        <div id="botChatMessages" style="min-height:300px;max-height:420px;overflow-y:auto;display:flex;flex-direction:column;gap:10px;margin-bottom:12px;padding:4px 0"></div>
+        <div style="display:flex;gap:8px">
+          <input id="botChatInput" type="text" placeholder="Escribe como si fueras un cliente..." 
+            style="flex:1;background:var(--surface2);border:1px solid var(--border2);border-radius:var(--radius);padding:10px 12px;color:var(--text1);font-size:.84em;outline:none;font-family:inherit"
+            onkeydown="if(event.key==='Enter')enviarMsgBot()">
+          <button class="btn btn-gold ripple-host" onclick="enviarMsgBot()" style="flex-shrink:0">📤</button>
+        </div>
+        <div style="font-size:.7em;color:var(--text3);margin-top:8px;text-align:center">
+          💡 El bot responde usando tu base de conocimiento + datos reales de Firebase
+        </div>
+      </div><!-- /bot -->
+
+      <!-- ── TAB: BASE DE CONOCIMIENTO ── -->
+      <div id="wt-kb" class="wa-tab-content">
+        <div class="wa-card">
+          <div class="wa-card-lbl">📚 Base de conocimiento</div>
+          <div style="font-size:.73em;color:var(--text3);margin-bottom:12px">
+            Enséñale al bot cómo responder. Agrega preguntas frecuentes y sus respuestas correctas.
+          </div>
+          <div id="kbList" style="margin-bottom:14px"></div>
+          <button class="btn btn-gold ripple-host" style="width:100%" onclick="abrirModalKB()">➕ Agregar pregunta</button>
+        </div>
+        <div class="wa-card">
+          <div class="wa-card-lbl">ℹ️ Info del negocio</div>
+          <div style="font-size:.73em;color:var(--text3);margin-bottom:8px">
+            Cuéntale al bot sobre tu negocio. Esto lo usa para presentarse y responder preguntas generales.
+          </div>
+          <textarea id="kbBizInfo" rows="5" placeholder="Ej: Llevamos 3 años haciendo sorteos diarios. Los resultados se basan en la lotería Sinuano. Los premios se entregan por Nequi en menos de 24 horas..." 
+            style="width:100%;background:var(--surface2);border:1px solid var(--border2);border-radius:var(--radius);padding:10px 12px;color:var(--text1);font-size:.84em;font-family:inherit;outline:none;resize:vertical;line-height:1.6"></textarea>
+          <button class="btn btn-gold ripple-host" style="width:100%;margin-top:10px" onclick="guardarBizInfo()">💾 Guardar</button>
+        </div>
+      </div><!-- /kb -->
 
       <!-- ── TAB: ESTADÍSTICAS ── -->
       <div id="wt-stats" class="wa-tab-content">
@@ -1294,6 +1343,30 @@ Mientras tanto puedes ver los sorteos activos en nuestra página 👇</textarea>
     <div class="modal-footer">
       <button class="btn btn-ghost ripple-host" onclick="closeModal('mConfirmPago')">Ahora no</button>
       <button class="btn ripple-host" style="background:linear-gradient(135deg,#25d366,#128c7e);color:#fff" onclick="enviarConfirmPago()">📤 Enviar por WhatsApp</button>
+    </div>
+  </div>
+</div>
+
+<!-- ─── MODAL: BASE DE CONOCIMIENTO ── -->
+<div class="modal-overlay" id="mKB">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-hdr">
+      <div class="modal-title" id="mKBTitle">➕ Nueva pregunta</div>
+      <button class="modal-close" onclick="closeModal('mKB')">✕</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="kbKey">
+      <div class="fg"><label>Pregunta del cliente</label>
+        <input type="text" id="kbPregunta" placeholder="Ej: ¿Cómo funciona el sorteo?">
+      </div>
+      <div class="fg"><label>Respuesta del bot</label>
+        <textarea id="kbRespuesta" rows="4" placeholder="Ej: Es muy fácil. Eliges un número del 00 al 99..."></textarea>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost ripple-host" onclick="closeModal('mKB')">Cancelar</button>
+      <button class="btn btn-gold ripple-host" onclick="guardarKB()">💾 Guardar</button>
     </div>
   </div>
 </div>
@@ -2952,6 +3025,193 @@ function limpiarWaStats(){
   }).catch(e=>{load(false);snack('Error','err');});
 }
 /* ── FIN ESTADÍSTICAS ── */
+
+
+/* BOT CHAT + BASE DE CONOCIMIENTO */
+let botChatHistory=[];
+let kbData={};
+
+function initBotChat(){
+  const msgs=document.getElementById('botChatMessages');
+  if(!msgs)return;
+  if(msgs.children.length===0){
+    botAgregarMensaje('bot','Hola! Soy el asistente de *Bol$illo Lleno x5*. Puedo responder preguntas sobre los sorteos, participar, pagar y mas. En que te ayudo?');
+  }
+}
+
+function limpiarBotChat(){
+  botChatHistory=[];
+  const msgs=document.getElementById('botChatMessages');
+  if(msgs) msgs.innerHTML='';
+  initBotChat();
+}
+
+function botAgregarMensaje(rol,texto){
+  const msgs=document.getElementById('botChatMessages');
+  if(!msgs)return;
+  const div=document.createElement('div');
+  div.style.cssText='display:flex;flex-direction:column;align-items:'+(rol==='user'?'flex-end':'flex-start')+';gap:3px';
+  const burbuja=document.createElement('div');
+  burbuja.style.cssText='max-width:85%;padding:10px 13px;border-radius:'+(rol==='user'?'12px 12px 4px 12px':'12px 12px 12px 4px')+';font-size:.82em;line-height:1.6;white-space:pre-wrap;word-break:break-word;background:'+(rol==='user'?'linear-gradient(135deg,var(--gold),#b45309)':'var(--surface2)')+';color:'+(rol==='user'?'#000':'var(--text1)')+';border:1px solid '+(rol==='user'?'transparent':'var(--border2)')+';';
+  burbuja.innerHTML=texto.replace(/\*(.*?)\*/g,'<strong>$1</strong>');
+  div.appendChild(burbuja);
+  msgs.appendChild(div);
+  msgs.scrollTop=msgs.scrollHeight;
+}
+
+function botMostrarTyping(){
+  const msgs=document.getElementById('botChatMessages');
+  if(!msgs)return;
+  const div=document.createElement('div');
+  div.id='botTyping';
+  div.innerHTML='<div style="background:var(--surface2);border:1px solid var(--border2);border-radius:12px 12px 12px 4px;padding:10px 16px;font-size:.82em;color:var(--text3)">escribiendo...</div>';
+  msgs.appendChild(div);
+  msgs.scrollTop=msgs.scrollHeight;
+}
+
+function botQuitarTyping(){
+  const t=document.getElementById('botTyping');
+  if(t)t.remove();
+}
+
+async function enviarMsgBot(){
+  const input=document.getElementById('botChatInput');
+  const msg=input.value.trim();
+  if(!msg)return;
+  input.value='';
+  botAgregarMensaje('user',msg);
+  botChatHistory.push({role:'user',content:msg});
+  botMostrarTyping();
+
+  const sorteoActivo=sorteos[0];
+  const bizInfo=document.getElementById('kbBizInfo')?document.getElementById('kbBizInfo').value:'';
+  const kbTexto=Object.entries(kbData).filter(([k])=>k!=='_bizInfo').map(([k,v])=>'P: '+v.pregunta+'\nR: '+v.respuesta).join('\n\n');
+
+  const systemPrompt='Eres el asistente virtual de Bol$illo Lleno x5, un negocio de sorteos diarios en Colombia manejado por Camilo Andres Martinez Cordoba.\n\n'
+    +'INFO DEL NEGOCIO:\n'+(bizInfo||'Sorteos diarios basados en loterias colombianas.')+'\n\n'
+    +'SORTEO ACTIVO:\n'+(sorteoActivo?'Nombre: '+sorteoActivo.name+'\nPremio Mayor: $'+parseInt(sorteoActivo.premioMayor||0).toLocaleString()+'\nPrecio: $'+parseInt(sorteoActivo.precioNumero||2000).toLocaleString()+' por numero\nCierre: '+(sorteoActivo.fecha?new Date(sorteoActivo.fecha).toLocaleString('es-CO'):'pronto'):'Sin sorteo activo.')+'\n\n'
+    +'5 MANERAS DE GANAR:\n'
+    +'PREMIO MAYOR: Si aciertas las ultimas 2 cifras\n'
+    +'SECO 1: Si aciertas las primeras 2 cifras\n'
+    +'SECO 2: Si aciertas las dos cifras del medio\n'
+    +'SECO 3: Si aciertas la primera y la ultima cifra\n'
+    +'SECO 4: Si aciertas las ultimas 2 cifras invertidas\n\n'
+    +'PAGO:\nNequi: 3502429433\nBre-B: @NEQUICAM8170\nTitular: Camilo Andres Martinez Cordoba\n\n'
+    +'PAGINA WEB: https://bolsillolleno.github.io/SorteosBolsilloLleno/\n\n'
+    +'BASE DE CONOCIMIENTO:\n'+(kbTexto||'(sin preguntas frecuentes aun)')+'\n\n'
+    +'INSTRUCCIONES: Responde en espanol, tono amigable. Si preguntan por pago da los datos de Nequi. Si preguntan numeros disponibles manda a la pagina web. Respuestas cortas maximo 4 lineas. Usa *asteriscos* para negrita.';
+
+  try{
+    const res=await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({
+        model:'claude-haiku-4-5-20251001',
+        max_tokens:400,
+        system:systemPrompt,
+        messages:botChatHistory
+      })
+    });
+    const data=await res.json();
+    botQuitarTyping();
+    const respuesta=(data.content&&data.content[0]&&data.content[0].text)||'Lo siento, no pude procesar tu mensaje.';
+    botAgregarMensaje('bot',respuesta);
+    botChatHistory.push({role:'assistant',content:respuesta});
+    if(botChatHistory.length>20) botChatHistory=botChatHistory.slice(-20);
+  }catch(e){
+    botQuitarTyping();
+    botAgregarMensaje('bot','Error de conexion. Verifica tu internet.');
+  }
+}
+
+/* BASE DE CONOCIMIENTO */
+function initKB(){
+  db.ref('wa_kb').once('value').then(function(snap){
+    kbData=snap.val()||{};
+    const biz=document.getElementById('kbBizInfo');
+    if(kbData._bizInfo&&biz) biz.value=kbData._bizInfo;
+    renderKB();
+  });
+}
+
+function renderKB(){
+  const cont=document.getElementById("kbList");
+  if(!cont)return;
+  const items=Object.entries(kbData).filter(function(e){return e[0]!=="_bizInfo";});
+  if(!items.length){
+    cont.innerHTML="<div style='text-align:center;color:var(--text3);padding:20px;font-size:.82em'>Sin preguntas aun. Agrega la primera.</div>";
+    return;
+  }
+  cont.innerHTML="";
+  items.forEach(function(e){
+    const k=e[0],v=e[1];
+    const div=document.createElement("div");
+    div.style.cssText="background:var(--surface2);border:1px solid var(--border2);border-radius:var(--radius);padding:12px 14px;margin-bottom:8px";
+    const btnEdit=document.createElement("button");
+    btnEdit.className="btn btn-ghost btn-ico btn-sm";
+    btnEdit.textContent="editar";
+    btnEdit.onclick=function(){editarKB(k);};
+    const btnDel=document.createElement("button");
+    btnDel.className="btn btn-ico btn-sm";
+    btnDel.style.cssText="background:rgba(239,68,68,.1);color:var(--red2)";
+    btnDel.textContent="eliminar";
+    btnDel.onclick=function(){eliminarKB(k);};
+    const actDiv=document.createElement("div");
+    actDiv.style.cssText="display:flex;gap:6px;justify-content:flex-end";
+    actDiv.appendChild(btnEdit);actDiv.appendChild(btnDel);
+    div.innerHTML="<div style='font-size:.82em;font-weight:800;color:var(--text1);margin-bottom:4px'>? "+v.pregunta+"</div>"
+      +"<div style='font-size:.78em;color:var(--text3);margin-bottom:8px;line-height:1.5'>"+v.respuesta+"</div>";
+    div.appendChild(actDiv);
+    cont.appendChild(div);
+  });
+}
+
+function abrirModalKB(key){
+  document.getElementById('kbKey').value=key||'';
+  document.getElementById('mKBTitle').textContent=key?'Editar pregunta':'Nueva pregunta';
+  if(key&&kbData[key]){
+    document.getElementById('kbPregunta').value=kbData[key].pregunta||'';
+    document.getElementById('kbRespuesta').value=kbData[key].respuesta||'';
+  } else {
+    document.getElementById('kbPregunta').value='';
+    document.getElementById('kbRespuesta').value='';
+  }
+  openModal('mKB');
+}
+
+function editarKB(key){abrirModalKB(key);}
+
+function guardarKB(){
+  const key=document.getElementById('kbKey').value||Date.now().toString();
+  const pregunta=document.getElementById('kbPregunta').value.trim();
+  const respuesta=document.getElementById('kbRespuesta').value.trim();
+  if(!pregunta||!respuesta){snack('Completa pregunta y respuesta','err');return;}
+  load(true);
+  db.ref('wa_kb/'+key).set({pregunta:pregunta,respuesta:respuesta}).then(function(){
+    kbData[key]={pregunta:pregunta,respuesta:respuesta};
+    load(false);closeModal('mKB');renderKB();snack('Pregunta guardada');
+  }).catch(function(e){load(false);snack('Error','err');});
+}
+
+function eliminarKB(key){
+  if(!confirm('Eliminar esta pregunta?'))return;
+  load(true);
+  db.ref('wa_kb/'+key).remove().then(function(){
+    delete kbData[key];
+    load(false);renderKB();snack('Pregunta eliminada');
+  }).catch(function(e){load(false);snack('Error','err');});
+}
+
+function guardarBizInfo(){
+  const info=document.getElementById('kbBizInfo').value.trim();
+  if(!info){snack('Escribe algo sobre tu negocio','err');return;}
+  load(true);
+  db.ref('wa_kb/_bizInfo').set(info).then(function(){
+    kbData._bizInfo=info;
+    load(false);snack('Info guardada');
+  }).catch(function(e){load(false);snack('Error','err');});
+}
+/* FIN BOT CHAT + KB */
 
 </script>
 </body>
