@@ -960,6 +960,7 @@ html,body{
       <div class="wa-tabs">
         <div class="wa-tab active" id="wat-campanas" onclick="waGoTab('campanas')">📣 Campañas</div>
         <div class="wa-tab" id="wat-siesta" onclick="waGoTab('siesta')">😴 Siesta</div>
+        <div class="wa-tab" id="wat-stats" onclick="waGoTab('stats');initWaStats()">📊 Stats</div>
         <div class="wa-tab" id="wat-cfg" onclick="waGoTab('cfg')">⚙️ Config</div>
       </div>
 
@@ -1098,6 +1099,17 @@ Mientras tanto puedes ver los sorteos activos en nuestra página 👇</textarea>
           <div id="waCfgTestResult" style="margin-top:8px;font-size:.75em;min-height:16px;text-align:center"></div>
         </div>
       </div><!-- /cfg -->
+
+      <!-- ── TAB: ESTADÍSTICAS ── -->
+      <div id="wt-stats" class="wa-tab-content">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
+          <div style="font-size:.72em;font-weight:800;color:var(--text3);letter-spacing:.6px;text-transform:uppercase">Historial de envíos</div>
+          <button class="btn btn-ghost btn-sm" onclick="initWaStats()">🔄 Actualizar</button>
+        </div>
+        <div id="waStatsContent">
+          <div style="text-align:center;color:var(--text3);padding:40px;font-size:.84em">Cargando estadísticas...</div>
+        </div>
+      </div><!-- /stats -->
 
     </div><!-- /s-whatsapp -->
   </div><!-- /content -->
@@ -1261,6 +1273,30 @@ Mientras tanto puedes ver los sorteos activos en nuestra página 👇</textarea>
   </div>
 </div>
 
+
+<!-- ─── MODAL: CONFIRMAR PAGO WA ─── -->
+<div class="modal-overlay" id="mConfirmPago">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-hdr">
+      <div class="modal-title">📲 Enviar confirmación</div>
+      <button class="modal-close" onclick="closeModal('mConfirmPago')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div style="font-size:.8em;color:var(--text3);margin-bottom:10px">
+        ¿Enviarle un mensaje de confirmación a <strong id="cpNombre" style="color:var(--gold)"></strong>?
+      </div>
+      <textarea id="cpMensaje" rows="7" style="width:100%;background:var(--surface2);border:1px solid var(--border2);border-radius:var(--radius);padding:10px 12px;color:var(--text1);font-size:.82em;font-family:inherit;outline:none;resize:vertical;line-height:1.6"></textarea>
+      <div style="font-size:.72em;color:var(--text3);margin-top:8px">
+        💡 Puedes editar el mensaje antes de enviar
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost ripple-host" onclick="closeModal('mConfirmPago')">Ahora no</button>
+      <button class="btn ripple-host" style="background:linear-gradient(135deg,#25d366,#128c7e);color:#fff" onclick="enviarConfirmPago()">📤 Enviar por WhatsApp</button>
+    </div>
+  </div>
+</div>
 <!-- ─── MODAL: CONFIRMAR LOGOUT ─────── -->
 <div class="modal-overlay" id="mLogout">
   <div class="modal">
@@ -1706,12 +1742,29 @@ function confirmarGestion(){
   });
   load(true);
   db.ref().update(upd).then(()=>{
+    // Registro automático en clientesDB si no existe
     if(nom&&tel){
       const k=tel.replace(/\D/g,'');
-      db.ref('clientesDB/'+k).set({nombre:nom,telefono:tel,ultimaCompra:new Date().toISOString()});
-      // clientesDB listener se actualiza automáticamente via Firebase
+      db.ref('clientesDB/'+k).once('value').then(snap=>{
+        if(!snap.exists()){
+          db.ref('clientesDB/'+k).set({nombre:nom,telefono:tel,ultimaCompra:new Date().toISOString()});
+          snack('Cliente registrado automáticamente 👤');
+        } else {
+          db.ref('clientesDB/'+k).update({ultimaCompra:new Date().toISOString()});
+        }
+      });
     }
-    load(false);closeModal('mGestion');adminSel=[];updateSelBar();snack('Números actualizados 🎉');
+    load(false);
+    closeModal('mGestion');
+    adminSel=[];
+    updateSelBar();
+    snack('Números actualizados 🎉');
+    // Si se marcó como pagado y hay teléfono, preguntar si enviar confirmación
+    if(estadoSel==='pag'&&tel&&nom){
+      const sorteo=sorteos.find(x=>x.id===numSorteoId);
+      const nums=upd?Object.keys(upd).filter(k=>k.startsWith('occupied/')).map(k=>k.split('/')[2]):[];
+      abrirModalConfirmPago(nom,tel,nums,sorteo);
+    }
   }).catch(e=>{load(false);snack('Error al actualizar','err');console.error(e)});
 }
 function exportNums(){
@@ -2634,10 +2687,12 @@ async function waEnviarCampana(){
       const data=await res.json();
       if(data.messages){
         ok++;
+        waRegistrarEnvio(c.telefono, waTplActual||'campana', 'enviado');
         log.innerHTML+=`<div class="wa-log-item wa-log-ok">✅ <strong>${c.nombre||c.telefono}</strong> — enviado</div>`;
       } else {
         err++;
         const errMsg=data.error?.message||'Error';
+        waRegistrarEnvio(c.telefono, waTplActual||'campana', 'error');
         log.innerHTML+=`<div class="wa-log-item wa-log-err">❌ <strong>${c.nombre||c.telefono}</strong> — ${errMsg}</div>`;
       }
     } catch(e){
@@ -2694,7 +2749,7 @@ async function waTestConexion(){
       body:JSON.stringify({messaging_product:'whatsapp',to:numero,type:'text',text:{body:'🧪 Prueba de conexión Bol$illo Lleno ✅'}})
     });
     const d=await r.json();
-    if(d.messages){res.style.color='var(--green2)';res.textContent='✅ Conexión exitosa!';}
+    if(d.messages){res.style.color='var(--green2)';res.textContent='✅ Conexión exitosa!';waRegistrarEnvio(numero,'prueba','enviado');}
     else{res.style.color='var(--red2)';res.textContent='❌ '+(d.error?.message||'Error');}
   }catch(e){res.style.color='var(--red2)';res.textContent='❌ Error de red';}
 }
@@ -2730,6 +2785,173 @@ function waGuardarSiesta(){
   snack('Mensaje guardado ✅');
 }
 /* ── FIN WHATSAPP JS ── */
+
+
+/* ══════════════════════════════════════
+   CONFIRMACIÓN DE PAGO AL CLIENTE
+══════════════════════════════════════ */
+let cpTelActual='';
+
+function abrirModalConfirmPago(nom,tel,nums,sorteo){
+  cpTelActual=tel.replace(/\D/g,'');
+  const numStr=nums.join(', ')||'—';
+  const sorteoNom=sorteo?sorteo.name:'el sorteo';
+  document.getElementById('cpNombre').textContent=nom;
+  document.getElementById('cpMensaje').value=
+`✅ *¡Pago confirmado, ${nom}!* 🎉
+
+Tu(s) número(s) *${numStr}* están confirmados para el sorteo *${sorteoNom}*.
+
+Recuerda que tienes *5 maneras de ganar* 🤑
+💰 Premio Mayor · ✨ Seco 1 · ✨ Seco 2 · ✨ Seco 3 · ✨ Seco 4
+
+¡Mucha suerte! 🍀
+*Bol$illo Lleno x5 — Sorteos Bendecidos*`;
+  openModal('mConfirmPago');
+}
+
+async function enviarConfirmPago(){
+  const msg=document.getElementById('cpMensaje').value.trim();
+  if(!msg||!cpTelActual){snack('Error: sin mensaje o teléfono','err');return;}
+  const{token,phoneId}=waGetConfig();
+  if(!token||!phoneId){
+    // Si no hay API configurada, abrir WhatsApp web
+    const numFinal=cpTelActual.startsWith('57')?cpTelActual:'57'+cpTelActual;
+    window.open(`https://wa.me/${numFinal}?text=${encodeURIComponent(msg)}`,'_blank');
+    closeModal('mConfirmPago');
+    snack('Abriendo WhatsApp...');
+    waRegistrarEnvio(cpTelActual,'confirmacion','enviado');
+    return;
+  }
+  load(true);
+  try{
+    const numFinal=cpTelActual.startsWith('57')?cpTelActual:'57'+cpTelActual;
+    const res=await fetch(`https://graph.facebook.com/v18.0/${phoneId}/messages`,{
+      method:'POST',
+      headers:{'Content-Type':'application/json','Authorization':'Bearer '+token},
+      body:JSON.stringify({messaging_product:'whatsapp',to:numFinal,type:'text',text:{body:msg}})
+    });
+    const data=await res.json();
+    load(false);
+    if(data.messages){
+      snack('✅ Confirmación enviada');
+      waRegistrarEnvio(cpTelActual,'confirmacion','enviado');
+    } else {
+      snack('Error al enviar: '+(data.error?.message||''),'err');
+      waRegistrarEnvio(cpTelActual,'confirmacion','error');
+    }
+  }catch(e){load(false);snack('Error de red','err');}
+  closeModal('mConfirmPago');
+}
+
+/* ══════════════════════════════════════
+   ESTADÍSTICAS DE CAMPAÑAS
+══════════════════════════════════════ */
+function waRegistrarEnvio(telefono, tipo, estado){
+  const key=Date.now().toString();
+  db.ref('wa_stats/'+key).set({
+    telefono,tipo,estado,
+    fecha:new Date().toISOString()
+  });
+}
+
+function initWaStats(){
+  db.ref('wa_stats').once('value').then(snap=>{
+    const data=snap.val()||{};
+    const registros=Object.values(data);
+    renderWaStats(registros);
+  });
+}
+
+function renderWaStats(registros){
+  const cont=document.getElementById('waStatsContent');
+  if(!cont)return;
+
+  const total=registros.length;
+  const enviados=registros.filter(r=>r.estado==='enviado').length;
+  const errores=registros.filter(r=>r.estado==='error').length;
+  const porTipo={};
+  registros.forEach(r=>{
+    porTipo[r.tipo]=(porTipo[r.tipo]||0)+1;
+  });
+
+  // Últimos 7 días
+  const hace7=Date.now()-(7*24*60*60*1000);
+  const recientes=registros.filter(r=>new Date(r.fecha).getTime()>hace7);
+
+  cont.innerHTML=`
+    <div class="stats2" style="margin-bottom:16px">
+      <div class="stat-card gold">
+        <div class="sv gold">${total}</div>
+        <div class="sl">Total enviados</div>
+      </div>
+      <div class="stat-card green">
+        <div class="sv green">${enviados}</div>
+        <div class="sl">Exitosos</div>
+      </div>
+      <div class="stat-card red">
+        <div class="sv red">${errores}</div>
+        <div class="sl">Errores</div>
+      </div>
+      <div class="stat-card orange">
+        <div class="sv orange">${recientes.length}</div>
+        <div class="sl">Últimos 7 días</div>
+      </div>
+    </div>
+
+    <div class="wa-card">
+      <div class="wa-card-lbl">📊 Por tipo de mensaje</div>
+      ${Object.entries(porTipo).length?Object.entries(porTipo).map(([tipo,cnt])=>`
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--border2);font-size:.84em">
+          <span style="color:var(--text2)">${waTipoLabel(tipo)}</span>
+          <span style="font-weight:800;color:var(--gold)">${cnt}</span>
+        </div>
+      `).join(''):'<div style="text-align:center;color:var(--text3);padding:20px;font-size:.82em">Sin registros aún</div>'}
+    </div>
+
+    <div class="wa-card">
+      <div class="wa-card-lbl">📋 Últimos envíos</div>
+      <div style="max-height:280px;overflow-y:auto">
+        ${registros.slice(-20).reverse().map(r=>`
+          <div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border2)">
+            <span style="font-size:1.1em">${r.estado==='enviado'?'✅':'❌'}</span>
+            <div style="flex:1;min-width:0">
+              <div style="font-size:.8em;font-weight:700;color:var(--text1)">${waTipoLabel(r.tipo)}</div>
+              <div style="font-size:.72em;color:var(--text3)">📱 ${r.telefono||'—'} · ${new Date(r.fecha).toLocaleString('es-CO',{dateStyle:'short',timeStyle:'short'})}</div>
+            </div>
+          </div>
+        `).join('')||'<div style="text-align:center;color:var(--text3);padding:20px;font-size:.82em">Sin registros aún</div>'}
+      </div>
+    </div>
+
+    <button class="btn btn-ghost btn-sm" style="width:100%;margin-top:4px" onclick="limpiarWaStats()">🗑️ Limpiar historial</button>
+  `;
+}
+
+function waTipoLabel(tipo){
+  const labels={
+    sorteo:'📣 Anuncio de sorteo',
+    recordatorio:'⏰ Recordatorio de pago',
+    pocos:'🔥 Alerta pocos números',
+    encuesta:'📊 Encuesta',
+    ganador:'🏆 Anuncio ganador',
+    confirmacion:'✅ Confirmación de pago',
+    bienvenida:'👋 Bienvenida',
+    prueba:'🧪 Prueba de conexión'
+  };
+  return labels[tipo]||tipo;
+}
+
+function limpiarWaStats(){
+  if(!confirm('¿Eliminar todo el historial de envíos?'))return;
+  load(true);
+  db.ref('wa_stats').remove().then(()=>{
+    load(false);
+    snack('Historial limpiado');
+    renderWaStats([]);
+  }).catch(e=>{load(false);snack('Error','err');});
+}
+/* ── FIN ESTADÍSTICAS ── */
 
 </script>
 </body>
