@@ -2307,123 +2307,278 @@ function descargarTablaImagen(){
 
   _getLogoImg(logoImg => {
     const COLS = 10, ROWS = 10;
-    const PAD = 28;           // margen exterior
-    const GAP = 5;            // espacio entre celdas
-    const HEADER = 70;        // altura del encabezado con nombre del sorteo
-    const FOOTER = 36;        // pie con leyenda
-    const CELL = 72;          // tamaño de cada celda
+    const PAD  = 22;
+    const GAP  = 5;
+    const CELL = 66;
 
-    const W = PAD*2 + COLS*CELL + (COLS-1)*GAP;
+    const W = PAD*2 + COLS*CELL + (COLS-1)*GAP; // 749
+
+    // ── Alturas del header ───────────────────────────────────
+    const H_LOGO      = 92;   // logo circular + espacio top
+    const H_NAME      = 36;   // nombre del sorteo
+    const H_MAYOR     = 32;   // pill premio mayor
+    const H_INFO      = 26;   // precio + fecha cierre
+    const H_DIV1      = 12;   // divisor
+    const H_PREM_TTL  = 22;   // título "5 formas de ganar"
+    const H_PREM      = 5*18; // 5 filas de premios
+    const H_DIV2      = 12;   // divisor
+    const H_PAGO_TTL  = 22;   // título pago
+    const H_PAGO      = 2*18; // 2 líneas pago
+    const H_DIV3      = 14;   // espacio antes de grilla
+    const HEADER = H_LOGO+H_NAME+H_MAYOR+H_INFO+H_DIV1+H_PREM_TTL+H_PREM+H_DIV2+H_PAGO_TTL+H_PAGO+H_DIV3;
+    const FOOTER = 32;
     const H = PAD*2 + HEADER + ROWS*CELL + (ROWS-1)*GAP + FOOTER;
 
     const canvas = document.createElement('canvas');
-    canvas.width  = W * 2;   // 2x para alta resolución
+    canvas.width  = W * 2;
     canvas.height = H * 2;
     const ctx = canvas.getContext('2d');
     ctx.scale(2, 2);
 
-    // ── Fondo ────────────────────────────────────────────────
-    const bgGrad = ctx.createLinearGradient(0,0,0,H);
-    bgGrad.addColorStop(0,'#071a0f');
-    bgGrad.addColorStop(1,'#030d07');
+    // ── Fondo degradado oscuro tipo flyer ────────────────────
+    const bgGrad = ctx.createLinearGradient(0, 0, 0, H);
+    bgGrad.addColorStop(0,   '#0d2518');
+    bgGrad.addColorStop(0.35,'#071a0f');
+    bgGrad.addColorStop(1,   '#030d07');
     ctx.fillStyle = bgGrad;
-    _roundRect(ctx, 0, 0, W, H, 18);
+    _roundRect(ctx, 0, 0, W, H, 20);
     ctx.fill();
 
-    // Borde exterior dorado
-    ctx.strokeStyle = 'rgba(245,158,11,0.4)';
-    ctx.lineWidth = 1.5;
-    _roundRect(ctx, 0.75, 0.75, W-1.5, H-1.5, 18);
+    // Borde dorado exterior
+    ctx.strokeStyle = 'rgba(245,158,11,0.55)';
+    ctx.lineWidth = 2;
+    _roundRect(ctx, 1, 1, W-2, H-2, 20);
     ctx.stroke();
 
-    // ── Header ──────────────────────────────────────────────
-    ctx.fillStyle = '#f59e0b';
-    ctx.font = 'bold 22px "Plus Jakarta Sans", sans-serif';
-    ctx.textAlign = 'center';
-    ctx.fillText('💰 ' + nombre.toUpperCase(), W/2, PAD + 26);
+    // Borde interior sutil
+    ctx.strokeStyle = 'rgba(245,158,11,0.12)';
+    ctx.lineWidth = 1;
+    _roundRect(ctx, 5, 5, W-10, H-10, 17);
+    ctx.stroke();
 
-    ctx.fillStyle = 'rgba(232,245,238,0.45)';
-    ctx.font = '600 12px "Plus Jakarta Sans", sans-serif';
+    // ── Marca de agua: logo grande detrás de la grilla ───────
+    const gridY = PAD + HEADER;
+    const gridW = COLS*CELL + (COLS-1)*GAP;
+    const gridH = ROWS*CELL + (ROWS-1)*GAP;
+    if(logoImg){
+      ctx.save();
+      ctx.globalAlpha = 0.055;
+      const wSize = Math.min(gridW, gridH) * 0.88;
+      ctx.drawImage(logoImg, PAD + (gridW-wSize)/2, gridY + (gridH-wSize)/2, wSize, wSize);
+      ctx.restore();
+    }
+
+    // ── HEADER ───────────────────────────────────────────────
+    let cy = PAD;
+
+    // Logo circular con borde dorado
+    const logoSize = 70;
+    const lx = W/2, ly = cy + logoSize/2;
+    if(logoImg){
+      ctx.save();
+      ctx.beginPath();
+      ctx.arc(lx, ly, logoSize/2, 0, Math.PI*2);
+      ctx.clip();
+      ctx.drawImage(logoImg, lx-logoSize/2, ly-logoSize/2, logoSize, logoSize);
+      ctx.restore();
+    } else {
+      ctx.font = '52px serif';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText('💰', lx, ly);
+    }
+    // Anillo dorado
+    ctx.save();
+    ctx.strokeStyle = 'rgba(245,158,11,0.65)';
+    ctx.lineWidth = 2.5;
+    ctx.beginPath();
+    ctx.arc(lx, ly, logoSize/2+2, 0, Math.PI*2);
+    ctx.stroke();
+    // Anillo exterior tenue
+    ctx.strokeStyle = 'rgba(245,158,11,0.18)';
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.arc(lx, ly, logoSize/2+6, 0, Math.PI*2);
+    ctx.stroke();
+    ctx.restore();
+    cy += H_LOGO;
+
+    // Nombre del sorteo
+    ctx.fillStyle = '#f59e0b';
+    ctx.font = 'bold 21px "Plus Jakarta Sans", sans-serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(nombre.toUpperCase(), W/2, cy + H_NAME/2);
+    cy += H_NAME;
+
+    // Pill Premio Mayor
+    const pillTxt = '🏆  PREMIO MAYOR: $' + parseInt(s.premioMayor||100000).toLocaleString();
+    const pillW = 270, pillH = 24;
+    ctx.save();
+    _roundRect(ctx, W/2-pillW/2, cy+4, pillW, pillH, 12);
+    ctx.fillStyle = 'rgba(245,158,11,0.17)';
+    ctx.fill();
+    ctx.strokeStyle = 'rgba(245,158,11,0.5)';
+    ctx.lineWidth = 1;
+    ctx.stroke();
+    ctx.restore();
+    ctx.fillStyle = '#fde68a';
+    ctx.font = 'bold 12.5px "Plus Jakarta Sans", sans-serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(pillTxt, W/2, cy+4+pillH/2);
+    cy += H_MAYOR;
+
+    // Precio + Fecha
+    const precioStr = '$' + parseInt(s.precioNumero||2000).toLocaleString() + ' por número';
+    const fechaStr  = s.fecha ? new Date(s.fecha).toLocaleString('es-CO',{dateStyle:'short',timeStyle:'short'}) : '—';
+    ctx.fillStyle = 'rgba(232,245,238,0.58)';
+    ctx.font = '600 11px "Plus Jakarta Sans", sans-serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText('💰 ' + precioStr + '   ·   ⏰ Cierre: ' + fechaStr, W/2, cy + H_INFO/2);
+    cy += H_INFO;
+
+    // Divisor 1
+    ctx.strokeStyle = 'rgba(245,158,11,0.18)';
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(PAD+24, cy+H_DIV1/2);
+    ctx.lineTo(W-PAD-24, cy+H_DIV1/2);
+    ctx.stroke();
+    cy += H_DIV1;
+
+    // Título premiación
+    ctx.fillStyle = 'rgba(232,245,238,0.82)';
+    ctx.font = 'bold 11px "Plus Jakarta Sans", sans-serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText('✨   5 FORMAS DE GANAR   ✨', W/2, cy + H_PREM_TTL/2);
+    cy += H_PREM_TTL;
+
+    // Filas de premios
+    const premios = [
+      ['🏆 PREMIO MAYOR', 'Últimas 2 cifras exactas',    '$'+parseInt(s.premioMayor||100000).toLocaleString()],
+      ['✨ SECO 1',        'Primeras 2 cifras',            '$'+parseInt(s.premioSeco1||10000).toLocaleString()],
+      ['✨ SECO 2',        '2 cifras del medio',           '$'+parseInt(s.premioSeco2||10000).toLocaleString()],
+      ['✨ SECO 3',        '1ª y última cifra',            '$'+parseInt(s.premioSeco3||10000).toLocaleString()],
+      ['✨ SECO 4',        'Últimas 2 cifras invertidas',  '$'+parseInt(s.premioSeco4||10000).toLocaleString()],
+    ];
+    premios.forEach((p, i) => {
+      const py = cy + i*18 + 9;
+      const isM = i === 0;
+      // Nombre premio (izq)
+      ctx.fillStyle = isM ? '#fbbf24' : 'rgba(245,158,11,0.82)';
+      ctx.font = (isM ? 'bold' : '700') + ' 10px "Plus Jakarta Sans"';
+      ctx.textAlign = 'left';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(p[0], PAD+10, py);
+      // Descripción (centro)
+      ctx.fillStyle = 'rgba(232,245,238,0.42)';
+      ctx.font = '500 10px "Plus Jakarta Sans"';
+      ctx.textAlign = 'center';
+      ctx.fillText(p[1], W/2, py);
+      // Monto (der)
+      ctx.fillStyle = isM ? '#34d399' : 'rgba(52,211,153,0.78)';
+      ctx.font = 'bold 10px "Plus Jakarta Sans"';
+      ctx.textAlign = 'right';
+      ctx.fillText(p[2], W-PAD-10, py);
+    });
+    cy += H_PREM;
+
+    // Divisor 2
+    ctx.strokeStyle = 'rgba(245,158,11,0.18)';
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(PAD+24, cy+H_DIV2/2);
+    ctx.lineTo(W-PAD-24, cy+H_DIV2/2);
+    ctx.stroke();
+    cy += H_DIV2;
+
+    // Título pago
+    ctx.fillStyle = 'rgba(232,245,238,0.82)';
+    ctx.font = 'bold 11px "Plus Jakarta Sans", sans-serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText('💳   DATOS DE PAGO', W/2, cy + H_PAGO_TTL/2);
+    cy += H_PAGO_TTL;
+
+    // Líneas pago
+    [
+      '📱 Nequi: 3502429433   ·   🔗 Bre-B: @NEQUICAM8170',
+      'Titular: Camilo Andrés Martínez Córdoba',
+    ].forEach((linea, i) => {
+      ctx.fillStyle = i===0 ? 'rgba(232,245,238,0.75)' : 'rgba(232,245,238,0.4)';
+      ctx.font = (i===0?'600':'500') + ' 10px "Plus Jakarta Sans"';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(linea, W/2, cy + i*18 + 9);
+    });
+    cy += H_PAGO + H_DIV3;
+
+    // ── GRILLA 10×10 ─────────────────────────────────────────
     const pag = Object.keys(occupied).length;
     const pen = Object.keys(pending).length;
-    const disp = 100 - pag - pen;
-    ctx.fillText(`✅ ${pag} pagados  ·  ⏳ ${pen} pendientes  ·  🟢 ${disp} disponibles`, W/2, PAD + 50);
 
-    // ── Celdas ───────────────────────────────────────────────
     for(let i=0;i<100;i++){
       const col = i % COLS;
       const row = Math.floor(i / COLS);
-      const x = PAD + col*(CELL+GAP);
-      const y = PAD + HEADER + row*(CELL+GAP);
+      const x   = PAD + col*(CELL+GAP);
+      const y   = cy  + row*(CELL+GAP);
       const num = i.toString().padStart(2,'0');
-
-      const isPag = !!occupied[num];
-      const isPen = !!pending[num];
+      const isTaken = !!occupied[num] || !!pending[num];
 
       // Fondo celda
       ctx.save();
       _roundRect(ctx, x, y, CELL, CELL, 10);
-      if(isPag){
-        // Tapado: fondo oscuro sutil
-        ctx.fillStyle = 'rgba(5,10,7,0.6)';
-      } else if(isPen){
-        ctx.fillStyle = 'rgba(245,158,11,0.13)';
-      } else {
-        ctx.fillStyle = 'rgba(16,185,129,0.12)';
-      }
+      ctx.fillStyle = isTaken ? 'rgba(4,9,6,0.72)' : 'rgba(16,185,129,0.13)';
       ctx.fill();
-
       // Borde celda
       _roundRect(ctx, x+0.75, y+0.75, CELL-1.5, CELL-1.5, 10);
-      if(isPag){
-        ctx.strokeStyle = 'rgba(245,158,11,0.15)';
-      } else if(isPen){
-        ctx.strokeStyle = 'rgba(245,158,11,0.35)';
-      } else {
-        ctx.strokeStyle = 'rgba(16,185,129,0.22)';
-      }
+      ctx.strokeStyle = isTaken ? 'rgba(245,158,11,0.22)' : 'rgba(16,185,129,0.30)';
       ctx.lineWidth = 1.2;
       ctx.stroke();
       ctx.restore();
 
-      if((isPag || isPen) && logoImg){
-        // Tanto pagados como pendientes se tapan con el logo
+      if(isTaken && logoImg){
+        // Logo circular tapando el número
         ctx.save();
-        const cx = x + CELL/2, cy = y + CELL/2, r = CELL*0.44;
+        const cx2 = x+CELL/2, cy2 = y+CELL/2, r = CELL*0.43;
         ctx.beginPath();
-        ctx.arc(cx, cy, r, 0, Math.PI*2);
+        ctx.arc(cx2, cy2, r, 0, Math.PI*2);
         ctx.clip();
-        ctx.drawImage(logoImg, cx-r, cy-r, r*2, r*2);
+        ctx.drawImage(logoImg, cx2-r, cy2-r, r*2, r*2);
         ctx.restore();
-      } else if((isPag || isPen) && !logoImg){
-        // Fallback sin logo: emoji moneda
-        ctx.font = `${CELL*0.52}px serif`;
+      } else if(isTaken){
+        ctx.font = `${CELL*0.50}px serif`;
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
         ctx.fillText('💰', x+CELL/2, y+CELL/2);
       } else {
-        // Número disponible visible
+        // Número disponible
         ctx.fillStyle = '#34d399';
-        ctx.font = `800 ${CELL*0.3}px "Plus Jakarta Sans", sans-serif`;
+        ctx.font = `800 ${CELL*0.30}px "Plus Jakarta Sans", sans-serif`;
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
         ctx.fillText(num, x+CELL/2, y+CELL/2);
       }
     }
 
-    // ── Footer ───────────────────────────────────────────────
-    const fy = PAD + HEADER + ROWS*CELL + (ROWS-1)*GAP + 14;
-    ctx.fillStyle = 'rgba(232,245,238,0.25)';
+    // ── FOOTER ───────────────────────────────────────────────
+    const gridBottom = cy + ROWS*CELL + (ROWS-1)*GAP;
+    const disp = 100 - pag - pen;
+    const now  = new Date();
+    ctx.fillStyle = 'rgba(232,245,238,0.22)';
     ctx.font = '600 10px "Plus Jakarta Sans", sans-serif';
     ctx.textAlign = 'center';
-    ctx.textBaseline = 'alphabetic';
-    const now = new Date();
-    ctx.fillText(`Generado ${now.toLocaleDateString('es-CO')} ${now.toLocaleTimeString('es-CO',{hour:'2-digit',minute:'2-digit'})}  ·  bolsillolleno`, W/2, fy+16);
+    ctx.textBaseline = 'middle';
+    ctx.fillText(
+      `✅ ${pag} pagados  ·  ⏳ ${pen} pendientes  ·  🟢 ${disp} disponibles   ·   bolsillolleno  ·  ${now.toLocaleDateString('es-CO')} ${now.toLocaleTimeString('es-CO',{hour:'2-digit',minute:'2-digit'})}`,
+      W/2, gridBottom + FOOTER/2
+    );
 
-    // ── Descarga compatible con WebView y navegador ───────────
+    // ── Descarga ─────────────────────────────────────────────
     const dataUrl = canvas.toDataURL('image/png');
-
-    // Intentar descarga directa (funciona en navegador)
     try {
       const link = document.createElement('a');
       link.download = `tabla_${nombre.replace(/\s+/g,'_')}_${Date.now()}.png`;
@@ -2433,27 +2588,19 @@ function descargarTablaImagen(){
       document.body.removeChild(link);
     } catch(e){}
 
-    // Mostrar siempre el modal con la imagen (funciona en WebView)
+    // Modal (WebView)
     let overlay = document.getElementById('imgOverlay');
     if(!overlay){
       overlay = document.createElement('div');
       overlay.id = 'imgOverlay';
-      overlay.style.cssText = `
-        position:fixed;inset:0;z-index:99999;
-        background:rgba(0,0,0,0.93);
-        display:flex;flex-direction:column;
-        align-items:center;justify-content:center;
-        padding:16px;
-      `;
+      overlay.style.cssText = 'position:fixed;inset:0;z-index:99999;background:rgba(0,0,0,0.93);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:16px;';
       overlay.innerHTML = `
         <div style="color:#f59e0b;font-size:.78em;font-weight:700;margin-bottom:12px;text-align:center;opacity:.8">
           📲 Mantén presionada la imagen → <strong>Guardar imagen</strong>
         </div>
         <img id="imgOverlayImg" style="max-width:100%;max-height:75vh;border-radius:12px;border:1.5px solid rgba(245,158,11,.3);box-shadow:0 0 40px rgba(0,0,0,.8)"/>
         <button onclick="document.getElementById('imgOverlay').style.display='none'"
-          style="margin-top:16px;padding:10px 32px;border-radius:12px;
-          background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);
-          color:#fff;font-size:.85em;font-weight:700;cursor:pointer">
+          style="margin-top:16px;padding:10px 32px;border-radius:12px;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);color:#fff;font-size:.85em;font-weight:700;cursor:pointer">
           ✕ Cerrar
         </button>
       `;
