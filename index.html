@@ -2481,7 +2481,19 @@ function descargarTablaImagen(){
       const isTaken = !!occupied[num] || !!pending[num];
 
       if(!isTaken){
-        // DISPONIBLE → celda oscura + logo (como diamantes en la referencia)
+        // DISPONIBLE → número blanco visible
+        ctx.fillStyle = '#131313';
+        ctx.fillRect(x, y, CELL, CELL);
+        ctx.strokeStyle = 'rgba(200,200,200,0.28)';
+        ctx.lineWidth = 0.8;
+        ctx.strokeRect(x+0.4,y+0.4,CELL-0.8,CELL-0.8);
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold '+(CELL*0.37)+'px "Plus Jakarta Sans", sans-serif';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(num, x+CELL/2, y+CELL/2);
+      } else {
+        // TOMADO → tapado con el logo
         ctx.fillStyle = '#0a0a0a';
         ctx.fillRect(x, y, CELL, CELL);
         ctx.strokeStyle = 'rgba(60,60,60,0.45)';
@@ -2493,21 +2505,9 @@ function descargarTablaImagen(){
         } else {
           ctx.font = (CELL*0.50)+'px serif';
           ctx.textAlign='center'; ctx.textBaseline='middle';
-          ctx.fillStyle='#22cc44';
+          ctx.fillStyle='#555';
           ctx.fillText('💰',x+CELL/2,y+CELL/2);
         }
-      } else {
-        // TOMADO → número sobre negro (como en la referencia)
-        ctx.fillStyle = '#131313';
-        ctx.fillRect(x, y, CELL, CELL);
-        ctx.strokeStyle = 'rgba(200,200,200,0.28)';
-        ctx.lineWidth = 0.8;
-        ctx.strokeRect(x+0.4,y+0.4,CELL-0.8,CELL-0.8);
-        ctx.fillStyle = '#ffffff';
-        ctx.font = 'bold '+(CELL*0.37)+'px "Plus Jakarta Sans", sans-serif';
-        ctx.textAlign = 'center';
-        ctx.textBaseline = 'middle';
-        ctx.fillText(num, x+CELL/2, y+CELL/2);
       }
     }
 
@@ -2539,7 +2539,7 @@ function descargarTablaImagen(){
     ctx.font = '600 10px "Plus Jakarta Sans", sans-serif';
     ctx.fillStyle = '#333';
     const disp = 100-pag-pen;
-    ctx.fillText(disp+' disponibles  ·  '+pag+' pagados  ·  '+pen+' pendientes', W/2+10, gridBot+FOOTER*0.75);
+    ctx.fillText(disp+' disponibles', W/2+10, gridBot+FOOTER*0.75);
     ctx.restore();
 
     // ── Descarga ─────────────────────────────────────────────
