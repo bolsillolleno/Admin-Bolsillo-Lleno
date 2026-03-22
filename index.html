@@ -1225,6 +1225,7 @@ Mientras tanto puedes ver los sorteos activos en nuestra página 👇</textarea>
         <div class="fg"><label>Seco 1 ($)</label><input type="number" id="sSeco1" value="10000" min="0"></div>
         <div class="fg"><label>Seco 2 ($)</label><input type="number" id="sSeco2" value="10000" min="0"></div>
         <div class="fg"><label>Seco 3 ($)</label><input type="number" id="sSeco3" value="10000" min="0"></div>
+        <div class="fg"><label>Seco 4 ($)</label><input type="number" id="sSeco4" value="10000" min="0"></div>
       </div>
     </div>
     <div class="modal-footer">
@@ -1686,7 +1687,7 @@ function openNewSorteo(){
   ['sName','sLottery','sDate'].forEach(id=>document.getElementById(id).value='');
   document.getElementById('sPrecio').value=2000;
   document.getElementById('sMayor').value=100000;
-  ['sSeco1','sSeco2','sSeco3'].forEach(id=>document.getElementById(id).value=10000);
+  ['sSeco1','sSeco2','sSeco3','sSeco4'].forEach(id=>document.getElementById(id).value=10000);
   openModal('mSorteo');
 }
 function openEditSorteo(id){
@@ -1701,6 +1702,7 @@ function openEditSorteo(id){
   document.getElementById('sSeco1').value=s.premioSeco1||10000;
   document.getElementById('sSeco2').value=s.premioSeco2||10000;
   document.getElementById('sSeco3').value=s.premioSeco3||10000;
+  document.getElementById('sSeco4').value=s.premioSeco4||10000;
   openModal('mSorteo');
 }
 function saveSorteo(){
@@ -1714,6 +1716,7 @@ function saveSorteo(){
     premioSeco1:parseInt(document.getElementById('sSeco1').value)||10000,
     premioSeco2:parseInt(document.getElementById('sSeco2').value)||10000,
     premioSeco3:parseInt(document.getElementById('sSeco3').value)||10000,
+    premioSeco4:parseInt(document.getElementById('sSeco4').value)||10000,
   };
   if(!obj.name||!obj.lottery||!obj.date){snack('Completa todos los campos','err');return;}
   load(true);
@@ -2451,7 +2454,7 @@ function descargarTablaImagen(){
       ctx.restore();
     }
 
-    const fechaD  = s.fecha ? new Date(s.fecha) : new Date();
+    const fechaD  = s.date ? new Date(s.date) : new Date();
     const dias    = ['DOMINGO','LUNES','MARTES','MIÉRCOLES','JUEVES','VIERNES','SÁBADO'];
     const diaStr  = dias[fechaD.getDay()];
     const horaStr = fechaD.toLocaleTimeString('es-CO',{hour:'2-digit',minute:'2-digit'});
