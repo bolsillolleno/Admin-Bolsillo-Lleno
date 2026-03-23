@@ -2458,7 +2458,8 @@ function descargarTablaImagen(){
     const dias    = ['DOMINGO','LUNES','MARTES','MIÉRCOLES','JUEVES','VIERNES','SÁBADO'];
     const diaStr  = dias[fechaD.getDay()];
     const horaStr = fechaD.toLocaleTimeString('es-CO',{hour:'2-digit',minute:'2-digit'});
-    const bannerTxt = nombre.toUpperCase() + '  ·  ' + diaStr + '  ' + horaStr;
+    const lottery = (s.lottery||'').toUpperCase();
+    const bannerTxt = nombre.toUpperCase() + (lottery ? '  ·  ' + lottery : '') + '  ·  ' + diaStr + '  ' + horaStr;
     ctx.save();
     ctx.font = 'bold 15px "Plus Jakarta Sans", sans-serif';
     ctx.textAlign = 'center';
