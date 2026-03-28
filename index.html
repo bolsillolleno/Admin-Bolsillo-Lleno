@@ -697,8 +697,8 @@ html,body{
 .wa-tab{
   flex:0 0 auto;text-align:center;padding:9px 10px;
   border-radius:calc(var(--radius) - 3px);
-  font-size:.75em;font-weight:800;color:var(--text3);
-  cursor:pointer;transition:all .2s;letter-spacing:.2px;
+  font-size:.72em;font-weight:800;color:var(--text3);
+  cursor:pointer;transition:all .2s;letter-spacing:.2px;white-space:nowrap;
 }
 .wa-tab.active{background:var(--gold);color:#000;}
 .wa-tab-content{display:none;}
@@ -759,13 +759,13 @@ html,body{
 }
 .wa-log-ok{border-color:rgba(34,197,94,.3);background:rgba(34,197,94,.05);}
 .wa-log-err{border-color:rgba(239,68,68,.3);background:rgba(239,68,68,.05);}
-/* Toggle siesta */
+/* Toggle */
 .wa-toggle{
   width:52px;height:28px;border-radius:99px;
   background:var(--surface2);border:1px solid var(--border2);
   cursor:pointer;position:relative;transition:background .3s;flex-shrink:0;
 }
-.wa-toggle.on{background:var(--green1);}
+.wa-toggle.on{background:#25d366;}
 .wa-toggle-knob{
   position:absolute;top:3px;left:3px;
   width:20px;height:20px;border-radius:50%;
@@ -773,6 +773,89 @@ html,body{
   box-shadow:0 1px 4px rgba(0,0,0,.3);
 }
 .wa-toggle.on .wa-toggle-knob{left:27px;}
+
+/* ─── EMBUDO / FUNNEL ──────────────── */
+.funnel-stage{
+  position:relative;padding:14px 16px;
+  border-radius:var(--radius);margin-bottom:8px;
+  border:1.5px solid var(--border2);
+  background:var(--surface2);
+  cursor:pointer;transition:all .2s;
+  display:flex;align-items:center;gap:12px;
+}
+.funnel-stage:active{transform:scale(.98)}
+.funnel-stage.nuevo{border-color:rgba(59,130,246,.4);background:rgba(59,130,246,.06)}
+.funnel-stage.caliente{border-color:rgba(249,115,22,.5);background:rgba(249,115,22,.08)}
+.funnel-stage.pendiente{border-color:rgba(245,158,11,.5);background:rgba(245,158,11,.08)}
+.funnel-stage.ganado{border-color:rgba(16,185,129,.5);background:rgba(16,185,129,.08)}
+.funnel-stage.inactivo{border-color:rgba(148,163,184,.3);background:rgba(148,163,184,.04)}
+.funnel-ico{width:40px;height:40px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:1.3em;flex-shrink:0}
+.funnel-body{flex:1;min-width:0}
+.funnel-title{font-weight:800;font-size:.9em;margin-bottom:2px}
+.funnel-sub{font-size:.72em;color:var(--text3);line-height:1.4}
+.funnel-cnt{font-size:1.6em;font-weight:900;font-family:'JetBrains Mono',monospace;flex-shrink:0}
+.funnel-cnt.azul{color:#3b82f6}
+.funnel-cnt.naranja{color:var(--orange)}
+.funnel-cnt.gold{background:var(--grad-gold);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.funnel-cnt.verde{color:var(--green2)}
+.funnel-cnt.gris{color:var(--text3)}
+
+/* ─── SECUENCIAS ──────────────────── */
+.seq-item{
+  background:var(--surface2);border:1.5px solid var(--border2);
+  border-radius:var(--radius);padding:13px 14px;margin-bottom:8px;
+  position:relative;overflow:hidden;
+}
+.seq-item::before{
+  content:'';position:absolute;left:0;top:0;bottom:0;width:3px;
+  background:var(--grad-gold);
+}
+.seq-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px}
+.seq-title{font-weight:800;font-size:.86em;color:var(--text)}
+.seq-badge{font-size:.65em;font-weight:800;padding:3px 9px;border-radius:20px;letter-spacing:.3px}
+.seq-desc{font-size:.76em;color:var(--text3);line-height:1.5}
+.seq-actions{display:flex;gap:6px;margin-top:10px}
+
+/* ─── LEADS / CLIENTES CALIENTES ─── */
+.lead-row{
+  display:flex;align-items:center;gap:10px;
+  padding:11px 14px;border-radius:var(--radius);
+  background:var(--surface2);border:1px solid var(--border2);
+  margin-bottom:6px;cursor:pointer;transition:all .2s;
+}
+.lead-row:active{background:rgba(245,158,11,.07);border-color:rgba(245,158,11,.3)}
+.lead-avatar{
+  width:38px;height:38px;border-radius:10px;
+  background:rgba(245,158,11,.12);border:1px solid rgba(245,158,11,.2);
+  display:flex;align-items:center;justify-content:center;
+  font-size:1em;font-weight:900;color:var(--gold);flex-shrink:0;
+}
+.lead-info{flex:1;min-width:0}
+.lead-name{font-weight:700;font-size:.88em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.lead-meta{font-size:.7em;color:var(--text3);margin-top:2px}
+.lead-state{flex-shrink:0}
+
+/* ─── AUTO-RULES ─────────────────── */
+.rule-row{
+  background:var(--surface2);border:1px solid var(--border2);
+  border-radius:var(--radius);padding:12px 14px;margin-bottom:8px;
+  display:flex;align-items:center;gap:10px;
+}
+.rule-ico{font-size:1.4em;flex-shrink:0}
+.rule-info{flex:1;min-width:0}
+.rule-title{font-weight:800;font-size:.84em}
+.rule-desc{font-size:.72em;color:var(--text3);margin-top:2px;line-height:1.4}
+.rule-toggle{flex-shrink:0}
+
+/* ─── CRM MINI MODAL ─────────────── */
+.crm-tabs{display:flex;gap:5px;margin-bottom:12px}
+.crm-tab{
+  flex:1;text-align:center;padding:8px;
+  border-radius:8px;font-size:.72em;font-weight:800;color:var(--text3);
+  cursor:pointer;transition:all .2s;border:1px solid var(--border2);
+  background:var(--surface2);
+}
+.crm-tab.active{background:rgba(245,158,11,.15);border-color:var(--gold);color:var(--gold)}
 </style>
 </head>
 <body>
@@ -961,18 +1044,232 @@ html,body{
 
       <!-- Sub-tabs -->
       <div class="wa-tabs">
-        <div class="wa-tab active" id="wat-campanas" onclick="waGoTab('campanas')">📣 Campañas</div>
+        <div class="wa-tab active" id="wat-dashboard" onclick="waGoTab('dashboard');initWaDashboard()">📊 CRM</div>
+        <div class="wa-tab" id="wat-funnel" onclick="waGoTab('funnel');initFunnel()">🎯 Embudo</div>
+        <div class="wa-tab" id="wat-secuencias" onclick="waGoTab('secuencias')">⚡ Secuencias</div>
+        <div class="wa-tab" id="wat-campanas" onclick="waGoTab('campanas')">📣 Campañas</div>
+        <div class="wa-tab" id="wat-bot" onclick="waGoTab('bot');initBotChat()">🤖 Bot IA</div>
+        <div class="wa-tab" id="wat-kb" onclick="waGoTab('kb');initKB()">📚 Entrena</div>
+        <div class="wa-tab" id="wat-automatizacion" onclick="waGoTab('automatizacion')">🔄 Reglas</div>
         <div class="wa-tab" id="wat-siesta" onclick="waGoTab('siesta')">😴 Siesta</div>
-        <div class="wa-tab" id="wat-bot" onclick="waGoTab('bot');initBotChat()">🤖 Bot</div>
-        <div class="wa-tab" id="wat-kb" onclick="waGoTab('kb');initKB()">📚 Enseñar</div>
-        <div class="wa-tab" id="wat-stats" onclick="waGoTab('stats');initWaStats()">📊 Stats</div>
+        <div class="wa-tab" id="wat-stats" onclick="waGoTab('stats');initWaStats()">📈 Stats</div>
         <div class="wa-tab" id="wat-cfg" onclick="waGoTab('cfg')">⚙️ Config</div>
       </div>
 
-      <!-- ── TAB: CAMPAÑAS ── -->
-      <div id="wt-campanas" class="wa-tab-content active">
+      <!-- ══ TAB: CRM DASHBOARD ══ -->
+      <div id="wt-dashboard" class="wa-tab-content active">
+        <!-- KPIs rápidos -->
+        <div class="stats2" style="margin-bottom:14px">
+          <div class="stat-card blue" style="--accent:rgba(59,130,246,.08)">
+            <div class="sv" id="crmNuevos" style="color:#3b82f6">0</div>
+            <div class="sl">🆕 Nuevos</div>
+          </div>
+          <div class="stat-card orange">
+            <div class="sv orange" id="crmCalientes">0</div>
+            <div class="sl">🔥 Calientes</div>
+          </div>
+          <div class="stat-card gold">
+            <div class="sv gold" id="crmPendientesWa">0</div>
+            <div class="sl">⏳ Pendientes</div>
+          </div>
+          <div class="stat-card green">
+            <div class="sv green" id="crmGanados">0</div>
+            <div class="sl">✅ Ganados</div>
+          </div>
+        </div>
 
-        <!-- Selector sorteo -->
+        <!-- Tasa de conversión visual -->
+        <div class="wa-card">
+          <div class="wa-card-lbl">🎯 Tasa de conversión del embudo</div>
+          <div id="crmFunnelBar" style="margin-bottom:6px"></div>
+          <div style="font-size:.7em;color:var(--text3);text-align:center" id="crmTasaTexto">Cargando...</div>
+        </div>
+
+        <!-- Leads calientes - acción urgente -->
+        <div class="wa-card">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+            <div class="wa-card-lbl" style="margin:0">🔥 Requieren atención</div>
+            <button class="btn btn-ghost btn-sm" onclick="initWaDashboard()">🔄</button>
+          </div>
+          <div id="crmLeadsUrgentes">
+            <div style="text-align:center;color:var(--text3);padding:20px;font-size:.82em">Cargando...</div>
+          </div>
+        </div>
+
+        <!-- Acción masiva rápida -->
+        <div class="wa-card">
+          <div class="wa-card-lbl">⚡ Acciones rápidas CRM</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+            <button class="btn btn-ghost btn-sm" onclick="waAccionMasiva('pendientes','recordatorio')" style="font-size:.75em;padding:11px 8px">⏰ Recordar pendientes</button>
+            <button class="btn btn-ghost btn-sm" onclick="waAccionMasiva('nuevos','bienvenida')" style="font-size:.75em;padding:11px 8px">👋 Bienvenida nuevos</button>
+            <button class="btn btn-ghost btn-sm" onclick="waAccionMasiva('fantasmas','reactivar')" style="font-size:.75em;padding:11px 8px;color:var(--orange)">💤 Reactivar inactivos</button>
+            <button class="btn btn-ghost btn-sm" onclick="waAccionMasiva('frecuentes','vip')" style="font-size:.75em;padding:11px 8px;color:var(--gold)">⭐ Mensaje VIP</button>
+          </div>
+        </div>
+      </div><!-- /dashboard -->
+
+      <!-- ══ TAB: EMBUDO ══ -->
+      <div id="wt-funnel" class="wa-tab-content">
+        <div class="wa-card">
+          <div class="wa-card-lbl">🎯 Clasificación automática de leads</div>
+          <div style="font-size:.73em;color:var(--text3);margin-bottom:12px">El sistema clasifica a tus clientes automáticamente según su comportamiento</div>
+
+          <div class="funnel-stage nuevo" onclick="verLeadsPorEstado('nuevo')">
+            <div class="funnel-ico" style="background:rgba(59,130,246,.12)">🆕</div>
+            <div class="funnel-body">
+              <div class="funnel-title" style="color:#3b82f6">Nuevos leads</div>
+              <div class="funnel-sub">Nunca han comprado · Primer contacto</div>
+            </div>
+            <div class="funnel-cnt azul" id="fn-nuevo">0</div>
+          </div>
+
+          <div class="funnel-stage caliente" onclick="verLeadsPorEstado('caliente')">
+            <div class="funnel-ico" style="background:rgba(249,115,22,.12)">🔥</div>
+            <div class="funnel-body">
+              <div class="funnel-title" style="color:var(--orange)">Calientes</div>
+              <div class="funnel-sub">Han preguntado o reservado · Alta intención</div>
+            </div>
+            <div class="funnel-cnt naranja" id="fn-caliente">0</div>
+          </div>
+
+          <div class="funnel-stage pendiente" onclick="verLeadsPorEstado('pendiente')">
+            <div class="funnel-ico" style="background:rgba(245,158,11,.12)">⏳</div>
+            <div class="funnel-body">
+              <div class="funnel-title" style="color:var(--gold)">Pendientes de pago</div>
+              <div class="funnel-sub">Reservaron número · No han pagado</div>
+            </div>
+            <div class="funnel-cnt gold" id="fn-pendiente">0</div>
+          </div>
+
+          <div class="funnel-stage ganado" onclick="verLeadsPorEstado('ganado')">
+            <div class="funnel-ico" style="background:rgba(16,185,129,.12)">✅</div>
+            <div class="funnel-body">
+              <div class="funnel-title" style="color:var(--green2)">Convertidos</div>
+              <div class="funnel-sub">Pagaron · Clientes activos</div>
+            </div>
+            <div class="funnel-cnt verde" id="fn-ganado">0</div>
+          </div>
+
+          <div class="funnel-stage inactivo" onclick="verLeadsPorEstado('inactivo')">
+            <div class="funnel-ico" style="background:rgba(148,163,184,.08)">💤</div>
+            <div class="funnel-body">
+              <div class="funnel-title" style="color:var(--text3)">Inactivos / Fantasmas</div>
+              <div class="funnel-sub">Más de 14 días sin comprar</div>
+            </div>
+            <div class="funnel-cnt gris" id="fn-inactivo">0</div>
+          </div>
+        </div>
+
+        <!-- Lista de leads según estado seleccionado -->
+        <div class="wa-card" id="funnelLeadsList" style="display:none">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+            <div class="wa-card-lbl" style="margin:0" id="funnelLeadsTitle">Leads</div>
+            <button class="btn btn-ghost btn-sm" onclick="document.getElementById('funnelLeadsList').style.display='none'">✕</button>
+          </div>
+          <div id="funnelLeadsBody"></div>
+          <div style="display:flex;gap:8px;margin-top:10px">
+            <button class="btn btn-gold btn-sm ripple-host" style="flex:1" id="funnelEnviarBtn" onclick="enviarAGrupoFunnel()">📤 Enviar mensaje al grupo</button>
+          </div>
+        </div>
+      </div><!-- /funnel -->
+
+      <!-- ══ TAB: SECUENCIAS ══ -->
+      <div id="wt-secuencias" class="wa-tab-content">
+        <div class="wa-card">
+          <div class="wa-card-lbl">⚡ Secuencias de presión automáticas</div>
+          <div style="font-size:.73em;color:var(--text3);margin-bottom:12px">Flujos de mensajes que el bot envía automáticamente según el estado del lead</div>
+
+          <div class="seq-item">
+            <div class="seq-head">
+              <div class="seq-title">👋 Secuencia Bienvenida</div>
+              <span class="seq-badge bg-green">ACTIVA</span>
+            </div>
+            <div class="seq-desc">Se activa cuando un lead nuevo escribe por primera vez. Presenta el negocio, explica las 5 formas de ganar y manda el link al sorteo activo.</div>
+            <div class="seq-actions">
+              <button class="btn btn-ghost btn-sm" onclick="previewSecuencia('bienvenida')">👁 Ver mensajes</button>
+              <button class="btn btn-ghost btn-sm" onclick="editarSecuencia('bienvenida')">✏️ Editar</button>
+            </div>
+          </div>
+
+          <div class="seq-item">
+            <div class="seq-head">
+              <div class="seq-title">⏰ Secuencia Pago Pendiente</div>
+              <span class="seq-badge bg-gold">ACTIVA</span>
+            </div>
+            <div class="seq-desc">3 mensajes escalonados (2h, 6h, 24h) para leads con número reservado pero sin pagar. Usa urgencia y escasez — el número se libera si no paga.</div>
+            <div class="seq-actions">
+              <button class="btn btn-ghost btn-sm" onclick="previewSecuencia('pendiente')">👁 Ver mensajes</button>
+              <button class="btn btn-ghost btn-sm" onclick="editarSecuencia('pendiente')">✏️ Editar</button>
+            </div>
+          </div>
+
+          <div class="seq-item">
+            <div class="seq-head">
+              <div class="seq-title">🔥 Secuencia Urgencia Final</div>
+              <span class="seq-badge bg-gold">ACTIVA</span>
+            </div>
+            <div class="seq-desc">Se dispara 2h antes del cierre del sorteo. Menciona cuántos números quedan disponibles y el premio que se puede ganar esa noche.</div>
+            <div class="seq-actions">
+              <button class="btn btn-ghost btn-sm" onclick="previewSecuencia('urgencia')">👁 Ver mensajes</button>
+              <button class="btn btn-ghost btn-sm" onclick="editarSecuencia('urgencia')">✏️ Editar</button>
+            </div>
+          </div>
+
+          <div class="seq-item">
+            <div class="seq-head">
+              <div class="seq-title">💤 Secuencia Reactivación</div>
+              <span class="seq-badge bg-gray">PAUSADA</span>
+            </div>
+            <div class="seq-desc">Para leads inactivos más de 14 días. 2 mensajes con oferta especial o exclusiva del próximo sorteo para traerlos de vuelta.</div>
+            <div class="seq-actions">
+              <button class="btn btn-ghost btn-sm" onclick="previewSecuencia('reactivacion')">👁 Ver mensajes</button>
+              <button class="btn btn-ghost btn-sm" onclick="activarSecuencia('reactivacion')" style="color:var(--green2)">▶ Activar</button>
+            </div>
+          </div>
+
+          <div class="seq-item">
+            <div class="seq-head">
+              <div class="seq-title">🏆 Secuencia Post-Ganador</div>
+              <span class="seq-badge bg-green">ACTIVA</span>
+            </div>
+            <div class="seq-desc">Cuando hay ganador, anuncia el resultado a todos y lanza automáticamente el próximo sorteo con CTA de inscripción inmediata.</div>
+            <div class="seq-actions">
+              <button class="btn btn-ghost btn-sm" onclick="previewSecuencia('ganador')">👁 Ver mensajes</button>
+              <button class="btn btn-ghost btn-sm" onclick="editarSecuencia('ganador')">✏️ Editar</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Disparar secuencia manual -->
+        <div class="wa-card">
+          <div class="wa-card-lbl">🚀 Disparar secuencia ahora</div>
+          <div class="fg" style="margin-bottom:10px">
+            <label>Secuencia</label>
+            <select id="seqSelector" style="width:100%;background:var(--surface2);border:1px solid var(--border2);border-radius:var(--radius);padding:10px 12px;color:var(--text1);font-size:.85em;outline:none">
+              <option value="bienvenida">👋 Bienvenida</option>
+              <option value="pendiente">⏰ Pago pendiente</option>
+              <option value="urgencia">🔥 Urgencia final</option>
+              <option value="reactivacion">💤 Reactivación</option>
+              <option value="ganador">🏆 Post-ganador</option>
+            </select>
+          </div>
+          <div class="fg" style="margin-bottom:10px">
+            <label>Segmento destino</label>
+            <select id="seqSegmento" style="width:100%;background:var(--surface2);border:1px solid var(--border2);border-radius:var(--radius);padding:10px 12px;color:var(--text1);font-size:.85em;outline:none">
+              <option value="todos">Todos los clientes</option>
+              <option value="pendientes">Solo pendientes</option>
+              <option value="nuevos">Solo nuevos</option>
+              <option value="frecuentes">Solo frecuentes / VIP</option>
+              <option value="fantasmas">Solo inactivos</option>
+            </select>
+          </div>
+          <button class="wa-send-btn" onclick="dispararSecuenciaManual()">🚀 Disparar secuencia</button>
+        </div>
+      </div><!-- /secuencias -->
+
+      <!-- ══ TAB: CAMPAÑAS ══ -->
+      <div id="wt-campanas" class="wa-tab-content">
+
         <div class="wa-card">
           <div class="wa-card-lbl">🎰 Sorteo</div>
           <select id="waSorteoSel" onchange="waCargarSorteo()" style="width:100%;background:var(--surface2);border:1px solid var(--border2);border-radius:var(--radius);padding:10px 12px;color:var(--text1);font-size:.85em;outline:none">
@@ -981,66 +1278,245 @@ html,body{
           <div id="waSorteoInfo" style="display:none;margin-top:10px;padding:10px;background:rgba(0,0,0,.2);border-radius:10px;font-size:.78em;color:var(--text2);line-height:1.7"></div>
         </div>
 
-        <!-- Plantillas -->
         <div class="wa-card">
           <div class="wa-card-lbl">📋 Plantilla</div>
-          <div class="wa-tpls">
+          <div class="wa-tpls" style="grid-template-columns:repeat(4,1fr)">
             <div class="wa-tpl-btn" onclick="waUsarTpl('sorteo')"><span>📣</span><span>Anuncio</span></div>
-            <div class="wa-tpl-btn" onclick="waUsarTpl('recordatorio')"><span>⏰</span><span>Recordatorio</span></div>
-            <div class="wa-tpl-btn" onclick="waUsarTpl('pocos')"><span>🔥</span><span>Pocos nums</span></div>
+            <div class="wa-tpl-btn" onclick="waUsarTpl('recordatorio')"><span>⏰</span><span>Recordar</span></div>
+            <div class="wa-tpl-btn" onclick="waUsarTpl('pocos')"><span>🔥</span><span>Escasez</span></div>
             <div class="wa-tpl-btn" onclick="waUsarTpl('encuesta')"><span>📊</span><span>Encuesta</span></div>
             <div class="wa-tpl-btn" onclick="waUsarTpl('ganador')"><span>🏆</span><span>Ganador</span></div>
+            <div class="wa-tpl-btn" onclick="waUsarTpl('bienvenida')"><span>👋</span><span>Bienvenida</span></div>
+            <div class="wa-tpl-btn" onclick="waUsarTpl('vip')"><span>⭐</span><span>VIP</span></div>
+            <div class="wa-tpl-btn" onclick="waGenerarConIA()"><span>🤖</span><span>IA Generar</span></div>
           </div>
         </div>
 
-        <!-- Editor de mensaje -->
         <div class="wa-card">
           <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
             <div class="wa-card-lbl" style="margin:0">✍️ Mensaje</div>
             <span style="font-size:.7em;color:var(--text3)" id="waMsgLen">0 caracteres</span>
           </div>
-          <textarea id="waMsgEditor" rows="7" oninput="waActualizarPreview()" placeholder="Selecciona una plantilla o escribe tu mensaje..." style="width:100%;background:var(--surface2);border:1px solid var(--border2);border-radius:var(--radius);padding:10px 12px;color:var(--text1);font-size:.84em;font-family:inherit;outline:none;resize:vertical;line-height:1.6"></textarea>
-          <!-- Preview burbuja -->
+          <textarea id="waMsgEditor" rows="6" oninput="waActualizarPreview()" placeholder="Selecciona plantilla, genera con IA o escribe..." style="width:100%;background:var(--surface2);border:1px solid var(--border2);border-radius:var(--radius);padding:10px 12px;color:var(--text1);font-size:.84em;font-family:inherit;outline:none;resize:vertical;line-height:1.6"></textarea>
           <div style="margin-top:10px">
             <div style="font-size:.7em;color:var(--text3);margin-bottom:6px">Vista previa:</div>
             <div id="waMsgPreview" style="background:#1f4e2e;border-radius:12px 12px 4px 12px;padding:10px 14px;font-size:.82em;color:#e2e8f0;line-height:1.6;white-space:pre-wrap;word-break:break-word;min-height:40px"></div>
           </div>
         </div>
 
-        <!-- Destinatarios -->
         <div class="wa-card">
-          <div class="wa-card-lbl">👥 Destinatarios</div>
+          <div class="wa-card-lbl">🎯 Segmentación</div>
           <div class="wa-dest-opts">
-            <div class="wa-dest-opt active" id="wdopt-todos" onclick="waSelDest('todos')">Todos<span id="wdcnt-todos" class="wa-dest-cnt">0</span></div>
-            <div class="wa-dest-opt" id="wdopt-pendientes" onclick="waSelDest('pendientes')">Con pendientes<span id="wdcnt-pendientes" class="wa-dest-cnt">0</span></div>
-            <div class="wa-dest-opt" id="wdopt-frecuentes" onclick="waSelDest('frecuentes')">Frecuentes<span id="wdcnt-frecuentes" class="wa-dest-cnt">0</span></div>
-            <div class="wa-dest-opt" id="wdopt-fantasmas" onclick="waSelDest('fantasmas')">Nunca compran<span id="wdcnt-fantasmas" class="wa-dest-cnt">0</span></div>
+            <div class="wa-dest-opt active" id="wdopt-todos" onclick="waSelDest('todos')">Todos <span id="wdcnt-todos" class="wa-dest-cnt">0</span></div>
+            <div class="wa-dest-opt" id="wdopt-pendientes" onclick="waSelDest('pendientes')">Pendientes<span id="wdcnt-pendientes" class="wa-dest-cnt">0</span></div>
+            <div class="wa-dest-opt" id="wdopt-frecuentes" onclick="waSelDest('frecuentes')">VIP<span id="wdcnt-frecuentes" class="wa-dest-cnt">0</span></div>
+            <div class="wa-dest-opt" id="wdopt-fantasmas" onclick="waSelDest('fantasmas')">Inactivos<span id="wdcnt-fantasmas" class="wa-dest-cnt">0</span></div>
           </div>
-          <div style="margin-top:8px;font-size:.75em;color:var(--text3)">Se enviará a <strong id="waDestTotal" style="color:var(--gold)">0</strong> clientes</div>
+          <div style="margin-top:8px;font-size:.75em;color:var(--text3)">Enviará a <strong id="waDestTotal" style="color:var(--gold)">0</strong> clientes</div>
         </div>
 
-        <!-- Botón enviar -->
-        <button class="wa-send-btn" id="waEnviarBtn" onclick="waEnviarCampana()">
-          📤 Enviar campaña
-        </button>
+        <button class="wa-send-btn" id="waEnviarBtn" onclick="waEnviarCampana()">📤 Lanzar campaña masiva</button>
 
-        <!-- Progreso -->
         <div id="waProgSection" style="display:none;margin-top:12px">
           <div style="display:flex;justify-content:space-between;font-size:.75em;color:var(--text3);margin-bottom:6px">
             <span id="waProgTxt">Enviando...</span>
             <span id="waProgPct">0%</span>
           </div>
           <div style="background:var(--surface2);border-radius:99px;height:6px;overflow:hidden">
-            <div id="waProgBar" style="height:100%;background:var(--green1);border-radius:99px;width:0%;transition:width .3s"></div>
+            <div id="waProgBar" style="height:100%;background:linear-gradient(90deg,#25d366,#128c7e);border-radius:99px;width:0%;transition:width .3s"></div>
+          </div>
+        </div>
+        <div id="waLog" style="margin-top:14px;max-height:200px;overflow-y:auto"></div>
+      </div><!-- /campanas -->
+
+      <!-- ══ TAB: BOT IA ══ -->
+      <div id="wt-bot" class="wa-tab-content">
+        <!-- Estado del bot -->
+        <div class="wa-card" style="background:linear-gradient(135deg,rgba(37,211,102,.08),rgba(18,140,126,.04));border-color:rgba(37,211,102,.2)">
+          <div style="display:flex;align-items:center;justify-content:space-between">
+            <div>
+              <div style="font-weight:900;font-size:1em;color:#25d366">🤖 Bot Vendedor IA</div>
+              <div style="font-size:.72em;color:var(--text3);margin-top:3px">Powered by Claude — 24/7 activo</div>
+            </div>
+            <div style="text-align:right">
+              <div style="font-size:.7em;color:var(--green2);font-weight:800">● EN VIVO</div>
+              <div style="font-size:.65em;color:var(--text3)" id="botConversCount">0 conversaciones</div>
+            </div>
           </div>
         </div>
 
-        <!-- Log -->
-        <div id="waLog" style="margin-top:14px;max-height:200px;overflow-y:auto"></div>
+        <!-- Personalidad del bot -->
+        <div class="wa-card">
+          <div class="wa-card-lbl">🎭 Personalidad del Bot</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:10px">
+            <div class="wa-dest-opt active" id="botpers-amigo" onclick="setBotPersonalidad('amigo',this)">🤝 Amigo cercano</div>
+            <div class="wa-dest-opt" id="botpers-pro" onclick="setBotPersonalidad('pro',this)">💼 Profesional</div>
+            <div class="wa-dest-opt" id="botpers-emocion" onclick="setBotPersonalidad('emocion',this)">🎉 Emocionante</div>
+            <div class="wa-dest-opt" id="botpers-urgente" onclick="setBotPersonalidad('urgente',this)">⚡ Urgente</div>
+          </div>
+          <div style="font-size:.73em;color:var(--text3)" id="botPersDesc">El bot habla como un amigo de confianza, cercano y cálido. Usa emojis con moderación. Genera confianza antes de vender.</div>
+        </div>
 
-      </div><!-- /campanas -->
+        <!-- Chat de prueba -->
+        <div class="wa-card" style="margin-bottom:10px">
+          <div style="display:flex;align-items:center;justify-content:space-between">
+            <div>
+              <div style="font-weight:800;font-size:.88em;color:var(--text1)">💬 Simular conversación</div>
+              <div style="font-size:.72em;color:var(--text3);margin-top:2px">Prueba el bot como si fueras cliente</div>
+            </div>
+            <button class="btn btn-ghost btn-sm" onclick="limpiarBotChat()">🗑️</button>
+          </div>
+        </div>
+        <div id="botChatMessages" style="min-height:280px;max-height:380px;overflow-y:auto;display:flex;flex-direction:column;gap:10px;margin-bottom:12px;padding:4px 0"></div>
+        <div style="display:flex;gap:8px">
+          <input id="botChatInput" type="text" placeholder="Escribe como si fueras un cliente..."
+            style="flex:1;background:var(--surface2);border:1px solid var(--border2);border-radius:var(--radius);padding:10px 12px;color:var(--text1);font-size:.84em;outline:none;font-family:inherit"
+            onkeydown="if(event.key==='Enter')enviarMsgBot()">
+          <button class="btn btn-gold ripple-host" onclick="enviarMsgBot()" style="flex-shrink:0">📤</button>
+        </div>
+        <div style="font-size:.7em;color:var(--text3);margin-top:8px;text-align:center">
+          💡 El bot usa IA real + tu base de conocimiento + datos del sorteo activo
+        </div>
+      </div><!-- /bot -->
 
-      <!-- ── TAB: SIESTA ── -->
+      <!-- ══ TAB: ENTRENA ══ -->
+      <div id="wt-kb" class="wa-tab-content">
+        <div class="wa-card">
+          <div class="wa-card-lbl">📚 Base de conocimiento del Bot</div>
+          <div style="font-size:.73em;color:var(--text3);margin-bottom:12px">
+            Entrena al bot con las preguntas reales de tus clientes. Mientras más enseñes, mejor vende.
+          </div>
+          <div id="kbList" style="margin-bottom:14px"></div>
+          <button class="btn btn-gold ripple-host" style="width:100%" onclick="abrirModalKB()">➕ Agregar pregunta</button>
+        </div>
+        <div class="wa-card">
+          <div class="wa-card-lbl">🏢 Personalidad del negocio</div>
+          <div style="font-size:.73em;color:var(--text3);margin-bottom:8px">
+            Cuéntale al bot todo sobre tu negocio. Esto define cómo se presenta y vende.
+          </div>
+          <textarea id="kbBizInfo" rows="6" placeholder="Ej: Llevamos 3 años haciendo sorteos diarios basados en la Lotería Sinuano. Los premios siempre se entregan el mismo día por Nequi. Somos 100% confiables, tenemos más de 500 clientes felices. Nuestro diferencial son las 5 maneras de ganar con un solo número..."
+            style="width:100%;background:var(--surface2);border:1px solid var(--border2);border-radius:var(--radius);padding:10px 12px;color:var(--text1);font-size:.84em;font-family:inherit;outline:none;resize:vertical;line-height:1.6"></textarea>
+          <button class="btn btn-gold ripple-host" style="width:100%;margin-top:10px" onclick="guardarBizInfo()">💾 Guardar personalidad</button>
+        </div>
+
+        <!-- Respuestas de objeciones -->
+        <div class="wa-card">
+          <div class="wa-card-lbl">🛡️ Manejo de objeciones</div>
+          <div style="font-size:.73em;color:var(--text3);margin-bottom:10px">El bot ya sabe responder estas objeciones automáticamente:</div>
+          <div style="display:flex;flex-direction:column;gap:6px">
+            <div style="background:var(--surface3);border-radius:8px;padding:10px 12px;font-size:.78em">
+              <div style="font-weight:800;color:var(--gold);margin-bottom:3px">❓ "¿Esto es una estafa?"</div>
+              <div style="color:var(--text3)">→ Comparte historial de ganadores y datos de confianza</div>
+            </div>
+            <div style="background:var(--surface3);border-radius:8px;padding:10px 12px;font-size:.78em">
+              <div style="font-weight:800;color:var(--gold);margin-bottom:3px">❓ "¿Por qué tan barato?"</div>
+              <div style="color:var(--text3)">→ Explica el modelo de negocio y las 5 formas de ganar</div>
+            </div>
+            <div style="background:var(--surface3);border-radius:8px;padding:10px 12px;font-size:.78em">
+              <div style="font-weight:800;color:var(--gold);margin-bottom:3px">❓ "No tengo plata ahora"</div>
+              <div style="color:var(--text3)">→ Ofrece reservar el número sin pago inmediato</div>
+            </div>
+            <div style="background:var(--surface3);border-radius:8px;padding:10px 12px;font-size:.78em">
+              <div style="font-weight:800;color:var(--gold);margin-bottom:3px">❓ "¿Cuándo se hace el sorteo?"</div>
+              <div style="color:var(--text3)">→ Informa la fecha exacta y cuenta regresiva</div>
+            </div>
+          </div>
+        </div>
+      </div><!-- /kb -->
+
+      <!-- ══ TAB: REGLAS AUTOMÁTICAS ══ -->
+      <div id="wt-automatizacion" class="wa-tab-content">
+        <div class="wa-card">
+          <div class="wa-card-lbl">🔄 Automatización por eventos</div>
+          <div style="font-size:.73em;color:var(--text3);margin-bottom:12px">El sistema actúa automáticamente cuando pasan estas cosas</div>
+
+          <div class="rule-row">
+            <div class="rule-ico">🆕</div>
+            <div class="rule-info">
+              <div class="rule-title">Nuevo cliente registrado</div>
+              <div class="rule-desc">Envía mensaje de bienvenida automático con info del sorteo activo</div>
+            </div>
+            <div class="rule-toggle">
+              <div class="wa-toggle on" id="rule-bienvenida" onclick="toggleRule('bienvenida',this)"><div class="wa-toggle-knob"></div></div>
+            </div>
+          </div>
+
+          <div class="rule-row">
+            <div class="rule-ico">⏰</div>
+            <div class="rule-info">
+              <div class="rule-title">Número reservado sin pagar (2h)</div>
+              <div class="rule-desc">Recordatorio suave de pago con datos de Nequi</div>
+            </div>
+            <div class="rule-toggle">
+              <div class="wa-toggle on" id="rule-recorda2h" onclick="toggleRule('recorda2h',this)"><div class="wa-toggle-knob"></div></div>
+            </div>
+          </div>
+
+          <div class="rule-row">
+            <div class="rule-ico">🔥</div>
+            <div class="rule-info">
+              <div class="rule-title">Número reservado sin pagar (24h)</div>
+              <div class="rule-desc">Mensaje de presión: "tu número se libera en 1 hora"</div>
+            </div>
+            <div class="rule-toggle">
+              <div class="wa-toggle on" id="rule-presion24h" onclick="toggleRule('presion24h',this)"><div class="wa-toggle-knob"></div></div>
+            </div>
+          </div>
+
+          <div class="rule-row">
+            <div class="rule-ico">✅</div>
+            <div class="rule-info">
+              <div class="rule-title">Pago confirmado</div>
+              <div class="rule-desc">Envía confirmación + próximos pasos automáticamente</div>
+            </div>
+            <div class="rule-toggle">
+              <div class="wa-toggle on" id="rule-confirmPago" onclick="toggleRule('confirmPago',this)"><div class="wa-toggle-knob"></div></div>
+            </div>
+          </div>
+
+          <div class="rule-row">
+            <div class="rule-ico">🏆</div>
+            <div class="rule-info">
+              <div class="rule-title">Sorteo cerrado</div>
+              <div class="rule-desc">Avisa a todos los participantes del cierre + resultado</div>
+            </div>
+            <div class="rule-toggle">
+              <div class="wa-toggle" id="rule-sorteoCierre" onclick="toggleRule('sorteoCierre',this)"><div class="wa-toggle-knob"></div></div>
+            </div>
+          </div>
+
+          <div class="rule-row">
+            <div class="rule-ico">💤</div>
+            <div class="rule-info">
+              <div class="rule-title">Cliente inactivo +14 días</div>
+              <div class="rule-desc">Reactivación automática con mensaje especial</div>
+            </div>
+            <div class="rule-toggle">
+              <div class="wa-toggle" id="rule-reactivacion" onclick="toggleRule('reactivacion',this)"><div class="wa-toggle-knob"></div></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="wa-card">
+          <div class="wa-card-lbl">⚡ Estado del motor de automatización</div>
+          <div style="display:flex;flex-direction:column;gap:8px">
+            <div style="display:flex;justify-content:space-between;align-items:center;font-size:.82em">
+              <span style="color:var(--text2)">Reglas activas</span>
+              <span style="font-weight:800;color:var(--green2)" id="reglasActivas">4 de 6</span>
+            </div>
+            <div style="display:flex;justify-content:space-between;align-items:center;font-size:.82em">
+              <span style="color:var(--text2)">Acciones ejecutadas hoy</span>
+              <span style="font-weight:800;color:var(--gold)" id="accionesHoy">0</span>
+            </div>
+            <div style="display:flex;justify-content:space-between;align-items:center;font-size:.82em">
+              <span style="color:var(--text2)">Última ejecución</span>
+              <span style="font-weight:800;color:var(--text3)" id="ultimaEjecucion">—</span>
+            </div>
+          </div>
+        </div>
+      </div><!-- /automatizacion -->
+
+      <!-- ══ TAB: SIESTA ══ -->
       <div id="wt-siesta" class="wa-tab-content">
         <div class="wa-card">
           <div style="display:flex;justify-content:space-between;align-items:center">
@@ -1079,7 +1555,18 @@ Mientras tanto puedes ver los sorteos activos en nuestra página 👇</textarea>
         </div>
       </div><!-- /siesta -->
 
-      <!-- ── TAB: CONFIG ── -->
+      <!-- ══ TAB: STATS ══ -->
+      <div id="wt-stats" class="wa-tab-content">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
+          <div style="font-size:.72em;font-weight:800;color:var(--text3);letter-spacing:.6px;text-transform:uppercase">Analítica de campañas</div>
+          <button class="btn btn-ghost btn-sm" onclick="initWaStats()">🔄 Actualizar</button>
+        </div>
+        <div id="waStatsContent">
+          <div style="text-align:center;color:var(--text3);padding:40px;font-size:.84em">Cargando estadísticas...</div>
+        </div>
+      </div><!-- /stats -->
+
+      <!-- ══ TAB: CONFIG ══ -->
       <div id="wt-cfg" class="wa-tab-content">
         <div class="wa-card">
           <div class="wa-card-lbl">🔑 Credenciales Meta</div>
@@ -2784,14 +3271,17 @@ function initWhatsapp(){
   waCargarSorteos();
   waContarDestinatarios();
   waCargarEstadoSiesta();
+  setTimeout(initWaDashboard,400);
 }
 
 // ── Sub-tabs ──
 function waGoTab(tab){
   document.querySelectorAll('.wa-tab').forEach(t=>t.classList.remove('active'));
   document.querySelectorAll('.wa-tab-content').forEach(t=>t.classList.remove('active'));
-  document.getElementById('wat-'+tab).classList.add('active');
-  document.getElementById('wt-'+tab).classList.add('active');
+  const tabEl=document.getElementById('wat-'+tab);
+  const contentEl=document.getElementById('wt-'+tab);
+  if(tabEl) tabEl.classList.add('active');
+  if(contentEl) contentEl.classList.add('active');
 }
 
 // ── Cargar sorteos en el selector ──
@@ -2911,14 +3401,41 @@ Recuerden que siempre tienen *5 maneras de ganar* con cada número 🤑
 
 ¡Muy pronto nuevo sorteo! 
 
-🍀 *Bol$illo Lleno x5 — Sorteos Bendecidos*`
+🍀 *Bol$illo Lleno x5 — Sorteos Bendecidos*`,
+
+  bienvenida:(_s,url)=>`👋 *¡Bienvenido a Bol$illo Lleno x5!* 🍀
+
+Gracias por unirte. Aquí tienes *5 maneras de ganar* con un solo número 🤑
+
+💰 *PREMIO MAYOR:* Últimas 2 cifras
+✨ *SECO 1:* Primeras 2 cifras
+✨ *SECO 2:* 2 cifras del medio
+✨ *SECO 3:* Primera y última cifra
+✨ *SECO 4:* Últimas 2 cifras invertidas
+
+Elige tu número ahora 👇
+🔗 ${url}
+
+¡Mucha suerte! 🍀 *Sorteos Bendecidos*`,
+
+  vip:(s,url)=>`⭐ *Mensaje exclusivo para clientes VIP* ⭐
+
+Hola! Como cliente frecuente de *Bol$illo Lleno x5* tienes prioridad en el sorteo *${s?s.name:'activo'}* 🎟️
+
+🏆 Premio Mayor: *$${parseInt(s?.premioMayor||100000).toLocaleString()}*
+⭐ Acceso prioritario antes que el público general
+
+Elige tu número antes de que se agoten 👇
+🔗 ${url}
+
+Gracias por tu confianza 🙏 *Bol$illo Lleno x5*`
 };
 
 function waUsarTpl(tipo){
   waTplActual=tipo;
   document.querySelectorAll('.wa-tpl-btn').forEach(b=>b.classList.remove('active'));
   const btns=document.querySelectorAll('.wa-tpl-btn');
-  const tipos=['sorteo','recordatorio','pocos','encuesta','ganador'];
+  const tipos=['sorteo','recordatorio','pocos','encuesta','ganador','bienvenida','vip'];
   const idx=tipos.indexOf(tipo);
   if(btns[idx]) btns[idx].classList.add('active');
   const id=document.getElementById('waSorteoSel').value;
@@ -3151,7 +3668,434 @@ function waGuardarSiesta(){
   db.ref('wa_siesta/mensaje').set(msg);
   snack('Mensaje guardado ✅');
 }
-/* ── FIN WHATSAPP JS ── */
+/* ── FIN WHATSAPP JS BASE ── */
+
+/* ══════════════════════════════════════
+   WHATSAPP GOD-TIER — NUEVOS MÓDULOS
+   CRM · EMBUDO · SECUENCIAS · IA VENTAS
+══════════════════════════════════════ */
+
+// ── Tab navigation (override) ──
+function waGoTab(tab){
+  document.querySelectorAll('.wa-tab').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.wa-tab-content').forEach(c=>c.classList.remove('active'));
+  const tabEl=document.getElementById('wat-'+tab);
+  const contentEl=document.getElementById('wt-'+tab);
+  if(tabEl) tabEl.classList.add('active');
+  if(contentEl) contentEl.classList.add('active');
+}
+
+// ── CRM DASHBOARD ──────────────────────
+function initWaDashboard(){
+  const conTel=clientesDB.filter(c=>c.telefono&&c.telefono.length>6);
+
+  // Clasificar leads
+  const ganados=conTel.filter(c=>{
+    let found=false;
+    Object.values(occupied||{}).forEach(nums=>{
+      Object.values(nums||{}).forEach(n=>{ if(n.telefono===c.telefono&&n.estado==='pag') found=true; });
+    });
+    return found;
+  });
+  const pendientesWa=conTel.filter(c=>{
+    let found=false;
+    Object.values(pending||{}).forEach(nums=>{
+      Object.values(nums||{}).forEach(n=>{ if(n.telefono===c.telefono) found=true; });
+    });
+    return found;
+  });
+  const calientes=conTel.filter(c=>{
+    let cnt=0;
+    Object.values(occupied||{}).forEach(nums=>{
+      Object.values(nums||{}).forEach(n=>{ if(n.telefono===c.telefono) cnt++; });
+    });
+    return cnt>=2 && cnt<5;
+  });
+  const nuevos=conTel.filter(c=>{
+    let found=false;
+    Object.values(occupied||{}).forEach(nums=>{
+      Object.values(nums||{}).forEach(n=>{ if(n.telefono===c.telefono) found=true; });
+    });
+    return !found;
+  });
+
+  document.getElementById('crmNuevos').textContent=nuevos.length;
+  document.getElementById('crmCalientes').textContent=calientes.length;
+  document.getElementById('crmPendientesWa').textContent=pendientesWa.length;
+  document.getElementById('crmGanados').textContent=ganados.length;
+
+  // Tasa de conversión
+  const total=conTel.length||1;
+  const tasa=Math.round((ganados.length/total)*100);
+  const convBar=document.getElementById('crmFunnelBar');
+  if(convBar){
+    convBar.innerHTML=`
+      <div style="background:var(--surface2);border-radius:99px;height:8px;overflow:hidden;margin-bottom:4px">
+        <div style="height:100%;width:${tasa}%;background:linear-gradient(90deg,var(--green),var(--green2));border-radius:99px;transition:width 1s"></div>
+      </div>
+    `;
+  }
+  const tasaTexto=document.getElementById('crmTasaTexto');
+  if(tasaTexto) tasaTexto.textContent=`${tasa}% de conversión — ${ganados.length} de ${total} clientes han comprado`;
+
+  // Urgentes: pendientes de pago
+  const urgEl=document.getElementById('crmLeadsUrgentes');
+  if(urgEl){
+    if(!pendientesWa.length){
+      urgEl.innerHTML='<div style="text-align:center;color:var(--green2);padding:20px;font-size:.82em">✅ Sin pendientes urgentes</div>';
+    } else {
+      urgEl.innerHTML=pendientesWa.slice(0,5).map(c=>`
+        <div class="lead-row" onclick="waMensajeRapido('${c.telefono}','${(c.nombre||'').replace(/'/g,'')}','recordatorio')">
+          <div class="lead-avatar">${(c.nombre||'?')[0].toUpperCase()}</div>
+          <div class="lead-info">
+            <div class="lead-name">${c.nombre||'Sin nombre'}</div>
+            <div class="lead-meta">📱 ${c.telefono} · ⏳ Pago pendiente</div>
+          </div>
+          <div class="lead-state"><span class="badge bg-gold">Recordar</span></div>
+        </div>
+      `).join('')+(pendientesWa.length>5?`<div style="text-align:center;font-size:.75em;color:var(--text3);padding:8px">+${pendientesWa.length-5} más pendientes</div>`:'');
+    }
+  }
+
+  // Actualizar contadores del embudo
+  document.getElementById('fn-nuevo').textContent=nuevos.length;
+  document.getElementById('fn-caliente').textContent=calientes.length;
+  document.getElementById('fn-pendiente').textContent=pendientesWa.length;
+  document.getElementById('fn-ganado').textContent=ganados.length;
+  const fantasmas=conTel.filter(c=>{
+    let found=false;
+    Object.values(occupied||{}).forEach(nums=>{
+      Object.values(nums||{}).forEach(n=>{ if(n.telefono===c.telefono) found=true; });
+    });
+    return !found;
+  });
+  document.getElementById('fn-inactivo').textContent=fantasmas.length;
+
+  // Stats bot
+  const bc=document.getElementById('botConversCount');
+  if(bc) bc.textContent=Math.max(0,botChatHistory.length/2)+' conversaciones';
+}
+
+// ── FUNNEL ──────────────────────────────
+function initFunnel(){initWaDashboard();}
+
+let funnelGrupoActual=[];
+function verLeadsPorEstado(estado){
+  const conTel=clientesDB.filter(c=>c.telefono&&c.telefono.length>6);
+  let lista=[];
+  const labels={nuevo:'🆕 Nuevos leads',caliente:'🔥 Calientes',pendiente:'⏳ Pendientes',ganado:'✅ Convertidos',inactivo:'💤 Inactivos'};
+
+  if(estado==='pendiente'){
+    lista=conTel.filter(c=>{
+      let f=false;
+      Object.values(pending||{}).forEach(ns=>{ Object.values(ns||{}).forEach(n=>{if(n.telefono===c.telefono)f=true;}); });
+      return f;
+    });
+  } else if(estado==='ganado'){
+    lista=conTel.filter(c=>{
+      let f=false;
+      Object.values(occupied||{}).forEach(ns=>{ Object.values(ns||{}).forEach(n=>{if(n.telefono===c.telefono&&n.estado==='pag')f=true;}); });
+      return f;
+    });
+  } else if(estado==='caliente'){
+    lista=conTel.filter(c=>{
+      let cnt=0;
+      Object.values(occupied||{}).forEach(ns=>{ Object.values(ns||{}).forEach(n=>{if(n.telefono===c.telefono)cnt++;}); });
+      return cnt>=2&&cnt<5;
+    });
+  } else if(estado==='inactivo'||estado==='nuevo'){
+    lista=conTel.filter(c=>{
+      let f=false;
+      Object.values(occupied||{}).forEach(ns=>{ Object.values(ns||{}).forEach(n=>{if(n.telefono===c.telefono)f=true;}); });
+      return !f;
+    });
+  }
+
+  funnelGrupoActual=lista;
+  const el=document.getElementById('funnelLeadsList');
+  const title=document.getElementById('funnelLeadsTitle');
+  const body=document.getElementById('funnelLeadsBody');
+  if(!el)return;
+  el.style.display='block';
+  if(title) title.textContent=labels[estado]||estado;
+  if(!lista.length){
+    body.innerHTML='<div style="text-align:center;color:var(--text3);padding:20px;font-size:.82em">Sin clientes en este estado</div>';
+    return;
+  }
+  body.innerHTML=lista.map(c=>`
+    <div class="lead-row" onclick="waMensajeRapido('${c.telefono}','${(c.nombre||'').replace(/'/g,"\\'")}','${estado==='pendiente'?'recordatorio':'sorteo'}')">
+      <div class="lead-avatar">${(c.nombre||'?')[0].toUpperCase()}</div>
+      <div class="lead-info">
+        <div class="lead-name">${c.nombre||'Sin nombre'}</div>
+        <div class="lead-meta">📱 ${c.telefono}</div>
+      </div>
+      <div><span style="font-size:1.2em">→</span></div>
+    </div>
+  `).join('');
+  el.scrollIntoView({behavior:'smooth',block:'nearest'});
+}
+
+function enviarAGrupoFunnel(){
+  if(!funnelGrupoActual.length){snack('Sin leads en este grupo','err');return;}
+  const msg=prompt(`Mensaje para ${funnelGrupoActual.length} clientes:`);
+  if(!msg)return;
+  waEnviarALista(funnelGrupoActual,msg);
+}
+
+// ── MENSAJE RÁPIDO ───────────────────────
+function waMensajeRapido(telefono,nombre,tipo){
+  const s=sorteos[0];
+  const url='https://bolsillolleno.github.io/SorteosBolsilloLleno/';
+  let msg='';
+  if(tipo==='recordatorio'){
+    msg=`⏰ Hola *${nombre}*! Tienes un número reservado pendiente de pago en *${s?s.name:'Bol$illo Lleno'}*.\n\n💚 Paga por Nequi: *3502429433*\n🔑 Bre-B: *@NEQUICAM8170*\n\n⚠️ Si no pagas, tu número se libera. ¡Aún estás a tiempo! 🙏`;
+  } else {
+    msg=waTpls.sorteo?waTpls.sorteo(s||{name:'Sorteo activo',premioMayor:100000,precioNumero:2000},url):`¡Hola ${nombre}! 🎟️ Tenemos sorteo activo. Visita ${url}`;
+  }
+  const numFinal=telefono.replace(/\D/g,'');
+  const num=numFinal.startsWith('57')?numFinal:'57'+numFinal;
+  const{token,phoneId}=waGetConfig();
+  if(!token||!phoneId){
+    window.open(`https://wa.me/${num}?text=${encodeURIComponent(msg)}`,'_blank');
+    return;
+  }
+  fetch(`https://graph.facebook.com/v18.0/${phoneId}/messages`,{
+    method:'POST',
+    headers:{'Content-Type':'application/json','Authorization':'Bearer '+token},
+    body:JSON.stringify({messaging_product:'whatsapp',to:num,type:'text',text:{body:msg}})
+  }).then(r=>r.json()).then(d=>{
+    if(d.messages){snack(`✅ Mensaje enviado a ${nombre}`);waRegistrarEnvio(telefono,tipo,'enviado');}
+    else{snack('Error al enviar','err');}
+  }).catch(()=>snack('Error de red','err'));
+}
+
+// ── ACCIÓN MASIVA ────────────────────────
+function waAccionMasiva(segmento,tipo){
+  const conTel=clientesDB.filter(c=>c.telefono&&c.telefono.length>6);
+  let lista=[];
+  if(segmento==='pendientes'){
+    lista=conTel.filter(c=>{
+      let f=false;
+      Object.values(pending||{}).forEach(ns=>{ Object.values(ns||{}).forEach(n=>{if(n.telefono===c.telefono)f=true;}); });
+      return f;
+    });
+  } else if(segmento==='nuevos'){
+    lista=conTel.filter(c=>{
+      let f=false;
+      Object.values(occupied||{}).forEach(ns=>{ Object.values(ns||{}).forEach(n=>{if(n.telefono===c.telefono)f=true;}); });
+      return !f;
+    });
+  } else if(segmento==='fantasmas'){
+    lista=conTel.filter(c=>{
+      let f=false;
+      Object.values(occupied||{}).forEach(ns=>{ Object.values(ns||{}).forEach(n=>{if(n.telefono===c.telefono)f=true;}); });
+      return !f;
+    });
+  } else if(segmento==='frecuentes'){
+    lista=conTel.filter(c=>{
+      let cnt=0;
+      Object.values(occupied||{}).forEach(ns=>{ Object.values(ns||{}).forEach(n=>{if(n.telefono===c.telefono)cnt++;}); });
+      return cnt>=3;
+    });
+  }
+  if(!lista.length){snack('Sin clientes en este segmento','err');return;}
+  const s=sorteos[0];
+  const url='https://bolsillolleno.github.io/SorteosBolsilloLleno/';
+  const msgs={
+    recordatorio:s?waTpls.recordatorio(s,url):'⏰ Tienes un pago pendiente en Bol$illo Lleno.',
+    bienvenida:`👋 Hola! Bienvenido a *Bol$illo Lleno x5* — donde tienes *5 maneras de ganar* con un solo número 🤑\n\nVe los sorteos activos aquí: ${url}`,
+    reactivar:`💤 ¡Hola! Hace tiempo no te vemos por aquí. Tenemos un sorteo especial activo 🎟️\n\n🏆 Premio Mayor disponible\n🔗 ${url}\n\n¡Te esperamos! 🙏`,
+    vip:`⭐ *¡Mensaje exclusivo para clientes VIP!* ⭐\n\nGracias por tu confianza en Bol$illo Lleno 🙏\n\nComo cliente frecuente tienes prioridad en el próximo sorteo.\n\nVe los números disponibles: ${url}`,
+  };
+  const msg=msgs[tipo]||'Hola! Tenemos sorteo activo.';
+  if(!confirm(`¿Enviar "${tipo}" a ${lista.length} clientes?`))return;
+  goTo('whatsapp');
+  waGoTab('campanas');
+  document.getElementById('waMsgEditor').value=msg;
+  waActualizarPreview();
+  // Pre-seleccionar segmento
+  snack(`✅ Mensaje cargado — ${lista.length} clientes listos`);
+}
+
+// ── GENERADOR IA ─────────────────────────
+async function waGenerarConIA(){
+  const s=sorteos[0];
+  const prompt=`Eres un experto en neuromarketing y ventas por WhatsApp para negocios de sorteos en Colombia. 
+Crea un mensaje de WhatsApp de ventas PODEROSO para el sorteo "${s?s.name:'Bol$illo Lleno x5'}" con premio mayor $${parseInt(s?.premioMayor||100000).toLocaleString()} COP.
+El mensaje debe:
+- Usar escasez y urgencia (principios de Cialdini)
+- Mencionar las 5 maneras de ganar
+- Ser máximo 5 líneas
+- Usar emojis estratégicos
+- Terminar con un CTA claro
+- Sonar humano, cálido, colombiano
+Responde SOLO con el mensaje, sin explicaciones.`;
+  const ed=document.getElementById('waMsgEditor');
+  if(ed) ed.value='🤖 Generando con IA...';
+  try{
+    const res=await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({model:'claude-haiku-4-5-20251001',max_tokens:300,messages:[{role:'user',content:prompt}]})
+    });
+    const data=await res.json();
+    const txt=(data.content&&data.content[0]&&data.content[0].text)||'Error generando';
+    if(ed){ed.value=txt;waActualizarPreview();}
+    snack('🤖 Mensaje generado con IA');
+  }catch(e){
+    if(ed) ed.value='';
+    snack('Error generando','err');
+  }
+}
+
+// ── SECUENCIAS ───────────────────────────
+const secuencias={
+  bienvenida:[
+    '👋 ¡Hola! Bienvenido a *Bol$illo Lleno x5* — el sorteo donde tienes *5 maneras de ganar* con un solo número 🤑',
+    '🎟️ Cómo funciona:\n💰 PREMIO MAYOR: Últimas 2 cifras\n✨ SECO 1: Primeras 2 cifras\n✨ SECO 2: 2 cifras del medio\n✨ SECO 3: Primera y última\n✨ SECO 4: Últimas 2 invertidas',
+    '🔗 Elige tu número aquí 👇\nhttps://bolsillolleno.github.io/SorteosBolsilloLleno/\n\n¡Mucha suerte! 🍀'
+  ],
+  pendiente:[
+    '⏰ Hola! Tu número está reservado pero aún no hemos recibido el pago. ¿Todo bien?',
+    '💳 Recuerda que puedes pagar fácil por:\n💚 Nequi: *3502429433*\n🔑 Bre-B: *@NEQUICAM8170*\n👤 Camilo Andres Martinez Cordoba',
+    '⚠️ ÚLTIMO AVISO: Tu número será liberado en 1 hora si no llega el pago. ¡Aún puedes participar! 🙏'
+  ],
+  urgencia:[
+    '🔥 ¡El sorteo cierra en 2 HORAS! Quedan pocos números disponibles 👀',
+    '💰 Premio Mayor disponible esta noche. ¿Todavía no tienes tu número? Es tu último chance 🎯',
+    '🏃 ¡Date prisa! Elige tu número ahora 👇\nhttps://bolsillolleno.github.io/SorteosBolsilloLleno/'
+  ],
+  reactivacion:[
+    '💤 ¡Hola! Hace tiempo no te vemos. Extrañamos tu suerte por aquí 🙏',
+    '🎁 Tenemos un sorteo especial activo y pensamos en ti. ¡El premio está esperando! 🏆\nhttps://bolsillolleno.github.io/SorteosBolsilloLleno/'
+  ],
+  ganador:[
+    '🏆 ¡TENEMOS GANADOR esta noche en *Bol$illo Lleno x5*! Felicitaciones al afortunado 🎉',
+    '¡Gracias a todos los participantes! 🙏 Muy pronto el próximo sorteo con 5 maneras de ganar.',
+    '🔔 ¿Quieres ser el próximo ganador? Reserva ya tu número 👇\nhttps://bolsillolleno.github.io/SorteosBolsilloLleno/'
+  ]
+};
+
+function previewSecuencia(tipo){
+  const msgs=secuencias[tipo]||[];
+  const txt=msgs.map((m,i)=>`*Mensaje ${i+1}:*\n${m}`).join('\n\n---\n\n');
+  alert(txt);
+}
+
+function editarSecuencia(tipo){
+  const msgs=secuencias[tipo]||[];
+  const nuevo=prompt(`Editar secuencia "${tipo}" (${msgs.length} mensajes):\n\nMensaje 1 actual:\n${msgs[0]||''}`);
+  if(nuevo){secuencias[tipo][0]=nuevo;snack('Secuencia actualizada');}
+}
+
+function activarSecuencia(tipo){
+  snack(`✅ Secuencia ${tipo} activada`);
+}
+
+async function dispararSecuenciaManual(){
+  const tipo=document.getElementById('seqSelector').value;
+  const segmento=document.getElementById('seqSegmento').value;
+  const msgs=secuencias[tipo];
+  if(!msgs||!msgs.length){snack('Secuencia no definida','err');return;}
+  const conTel=clientesDB.filter(c=>c.telefono&&c.telefono.length>6);
+  let lista=conTel;
+  if(segmento==='pendientes'){
+    lista=conTel.filter(c=>{
+      let f=false;
+      Object.values(pending||{}).forEach(ns=>{ Object.values(ns||{}).forEach(n=>{if(n.telefono===c.telefono)f=true;}); });
+      return f;
+    });
+  } else if(segmento==='nuevos'||segmento==='fantasmas'){
+    lista=conTel.filter(c=>{
+      let f=false;
+      Object.values(occupied||{}).forEach(ns=>{ Object.values(ns||{}).forEach(n=>{if(n.telefono===c.telefono)f=true;}); });
+      return !f;
+    });
+  } else if(segmento==='frecuentes'){
+    lista=conTel.filter(c=>{
+      let cnt=0;
+      Object.values(occupied||{}).forEach(ns=>{ Object.values(ns||{}).forEach(n=>{if(n.telefono===c.telefono)cnt++;}); });
+      return cnt>=3;
+    });
+  }
+  if(!lista.length){snack('Sin clientes en este segmento','err');return;}
+  if(!confirm(`¿Disparar secuencia "${tipo}" (${msgs.length} mensajes) a ${lista.length} clientes?`))return;
+  // Cargar el primer mensaje en campañas y enviar
+  document.getElementById('waMsgEditor').value=msgs[0];
+  waActualizarPreview();
+  waGoTab('campanas');
+  snack(`🚀 Secuencia cargada — ${lista.length} destinatarios`);
+}
+
+// ── PERSONALIDAD BOT ─────────────────────
+let botPersonalidad='amigo';
+const botPersonalidades={
+  amigo:'El bot habla como un amigo de confianza, cercano y cálido. Usa emojis con moderación. Genera confianza antes de vender.',
+  pro:'El bot es profesional y preciso. Responde con datos concretos y propuestas de valor claras. Tono ejecutivo.',
+  emocion:'El bot genera emoción y entusiasmo. Usa exclamaciones, emojis abundantes y frases que activan dopamina.',
+  urgente:'El bot usa escasez, urgencia y FOMO. Cada mensaje invita a actuar YA. Presión suave pero constante.'
+};
+
+function setBotPersonalidad(tipo,el){
+  botPersonalidad=tipo;
+  document.querySelectorAll('[id^=botpers-]').forEach(e=>e.classList.remove('active'));
+  if(el) el.classList.add('active');
+  const desc=document.getElementById('botPersDesc');
+  if(desc) desc.textContent=botPersonalidades[tipo]||'';
+  localStorage.setItem('bot_personalidad',tipo);
+  snack('Personalidad del bot actualizada');
+}
+
+// ── REGLAS AUTOMÁTICAS ───────────────────
+function toggleRule(nombre,el){
+  el.classList.toggle('on');
+  const activas=document.querySelectorAll('.rule-row .wa-toggle.on').length;
+  const total=document.querySelectorAll('.rule-row .wa-toggle').length;
+  const ra=document.getElementById('reglasActivas');
+  if(ra) ra.textContent=`${activas} de ${total}`;
+  const ult=document.getElementById('ultimaEjecucion');
+  if(ult) ult.textContent=new Date().toLocaleTimeString('es-CO',{hour:'2-digit',minute:'2-digit'});
+  snack(`Regla ${el.classList.contains('on')?'activada':'desactivada'}`);
+}
+
+// ── ENVIAR A LISTA ──────────────────────
+async function waEnviarALista(lista,msg){
+  const{token,phoneId}=waGetConfig();
+  if(!token||!phoneId){
+    snack('Configura Meta API primero','err');
+    waGoTab('cfg');
+    return;
+  }
+  let ok=0,err=0;
+  for(const c of lista){
+    try{
+      const tel=c.telefono.replace(/\D/g,'');
+      const num=tel.startsWith('57')?tel:'57'+tel;
+      const res=await fetch(`https://graph.facebook.com/v18.0/${phoneId}/messages`,{
+        method:'POST',
+        headers:{'Content-Type':'application/json','Authorization':'Bearer '+token},
+        body:JSON.stringify({messaging_product:'whatsapp',to:num,type:'text',text:{body:msg}})
+      });
+      const d=await res.json();
+      if(d.messages){ok++;waRegistrarEnvio(c.telefono,'campana','enviado');}
+      else err++;
+    }catch(e){err++;}
+    await new Promise(r=>setTimeout(r,500));
+  }
+  snack(`✅ ${ok} enviados · ${err} errores`);
+}
+
+// Init CRM automático cuando se carga WA
+const _origGoToWa=window.goTo;
+if(typeof goTo==='function'){
+  const origGoTo=goTo;
+  window.goTo=function(sec){
+    origGoTo(sec);
+    if(sec==='whatsapp') setTimeout(initWaDashboard,300);
+  };
+}
+
+/* ── FIN WHATSAPP GOD-TIER ── */
 
 
 /* ══════════════════════════════════════
