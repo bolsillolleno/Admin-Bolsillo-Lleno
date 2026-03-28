@@ -3315,7 +3315,40 @@ function waCargarSorteo(){
   if(waTplActual) waUsarTpl(waTplActual);
 }
 
-// ── Plantillas ──
+// ── Nombres de plantillas aprobadas por Meta ──
+// Cuando Meta apruebe tus plantillas, pon aquí el nombre exacto
+const waPlantillasAprobadas={
+  sorteo:'bolsillo_sorteo_nuevo',        // nombre que le des en Meta
+  recordatorio:'bolsillo_recordatorio',
+  ganador:'bolsillo_ganador',
+  bienvenida:'bolsillo_bienvenida',
+  vip:'bolsillo_vip'
+};
+
+// ── Enviar como plantilla aprobada (para masivos) ──
+async function waEnviarPlantilla(numFinal, nombrePlantilla, variables=[]){
+  const{token,phoneId}=waGetConfig();
+  if(!token||!phoneId) return {ok:false,error:'Sin token'};
+  const components=variables.length?[{type:'body',parameters:variables.map(v=>({type:'text',text:v}))}]:[];
+  const res=await fetch(`https://graph.facebook.com/v18.0/${phoneId}/messages`,{
+    method:'POST',
+    headers:{'Content-Type':'application/json','Authorization':'Bearer '+token},
+    body:JSON.stringify({
+      messaging_product:'whatsapp',
+      to:numFinal,
+      type:'template',
+      template:{
+        name:nombrePlantilla,
+        language:{code:'es'},
+        components:components
+      }
+    })
+  });
+  const data=await res.json();
+  return {ok:!!data.messages, error:data.error?.message||''};
+}
+
+// ── Plantillas de texto (para responder dentro de 24h) ──
 const waTpls={
   sorteo:(s,url)=>`🎟️ *¡NUEVO SORTEO DISPONIBLE!* 🎟️
 
@@ -3563,21 +3596,35 @@ async function waEnviarCampana(){
     try{
       const tel=c.telefono.replace(/\D/g,'');
       const numFinal=tel.startsWith('57')?tel:'57'+tel;
-      const res=await fetch(`https://graph.facebook.com/v18.0/${phoneId}/messages`,{
-        method:'POST',
-        headers:{'Content-Type':'application/json','Authorization':'Bearer '+token},
-        body:JSON.stringify({messaging_product:'whatsapp',to:numFinal,type:'text',text:{body:msg,preview_url:false}})
-      });
-      const data=await res.json();
-      if(data.messages){
-        ok++;
-        waRegistrarEnvio(c.telefono, waTplActual||'campana', 'enviado');
-        log.innerHTML+=`<div class="wa-log-item wa-log-ok">✅ <strong>${c.nombre||c.telefono}</strong> — enviado</div>`;
-      } else {
-        err++;
-        const errMsg=data.error?.message||'Error';
-        waRegistrarEnvio(c.telefono, waTplActual||'campana', 'error');
-        log.innerHTML+=`<div class="wa-log-item wa-log-err">❌ <strong>${c.nombre||c.telefono}</strong> — ${errMsg}</div>`;
+      // Intentar con plantilla aprobada primero, si no usar texto libre
+      let enviado=false;
+      const nombrePlantilla=waPlantillasAprobadas[waTplActual||'sorteo'];
+      if(nombrePlantilla&&waTplActual){
+        const r=await waEnviarPlantilla(numFinal,nombrePlantilla,[]);
+        if(r.ok){
+          enviado=true;ok++;
+          waRegistrarEnvio(c.telefono,waTplActual,'enviado');
+          log.innerHTML+=`<div class="wa-log-item wa-log-ok">✅ <strong>${c.nombre||c.telefono}</strong> — plantilla enviada</div>`;
+        }
+      }
+      if(!enviado){
+        // Fallback: texto libre (solo funciona dentro de 24h de conversación activa)
+        const res=await fetch(`https://graph.facebook.com/v18.0/${phoneId}/messages`,{
+          method:'POST',
+          headers:{'Content-Type':'application/json','Authorization':'Bearer '+token},
+          body:JSON.stringify({messaging_product:'whatsapp',to:numFinal,type:'text',text:{body:msg,preview_url:false}})
+        });
+        const data=await res.json();
+        if(data.messages){
+          ok++;
+          waRegistrarEnvio(c.telefono,waTplActual||'campana','enviado');
+          log.innerHTML+=`<div class="wa-log-item wa-log-ok">✅ <strong>${c.nombre||c.telefono}</strong> — enviado</div>`;
+        } else {
+          err++;
+          const errMsg=data.error?.message||'Error';
+          waRegistrarEnvio(c.telefono,waTplActual||'campana','error');
+          log.innerHTML+=`<div class="wa-log-item wa-log-err">❌ <strong>${c.nombre||c.telefono}</strong> — ${errMsg}</div>`;
+        }
       }
     } catch(e){
       err++;
@@ -4451,6 +4498,25 @@ function guardarBizInfo(){
 }
 /* FIN BOT CHAT + KB */
 
+
+// ── Guardar y cargar nombres de plantillas ──
+function guardarNombresPlantillas(){
+  waPlantillasAprobadas.sorteo=document.getElementById('tplSorteo').value.trim()||'bolsillo_sorteo_nuevo';
+  waPlantillasAprobadas.recordatorio=document.getElementById('tplRecordatorio').value.trim()||'bolsillo_recordatorio';
+  waPlantillasAprobadas.bienvenida=document.getElementById('tplBienvenida').value.trim()||'bolsillo_bienvenida';
+  waPlantillasAprobadas.ganador=document.getElementById('tplGanador').value.trim()||'bolsillo_ganador';
+  localStorage.setItem('wa_plantillas',JSON.stringify(waPlantillasAprobadas));
+  snack('✅ Nombres de plantillas guardados');
+}
+function cargarNombresPlantillas(){
+  const saved=localStorage.getItem('wa_plantillas');
+  if(!saved)return;
+  const p=JSON.parse(saved);
+  Object.assign(waPlantillasAprobadas,p);
+  const ids={sorteo:'tplSorteo',recordatorio:'tplRecordatorio',bienvenida:'tplBienvenida',ganador:'tplGanador'};
+  Object.entries(ids).forEach(([k,id])=>{const e=document.getElementById(id);if(e&&p[k])e.value=p[k];});
+}
+/* ══ FIN PLANTILLAS ══ */
 </script>
 </body>
 </html>
