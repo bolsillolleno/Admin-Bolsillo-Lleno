@@ -866,30 +866,9 @@ html,body{
 <!-- ─── SNACKBAR ─────────────────── -->
 <div id="snack"></div>
 
-<!-- ─── LOGIN ───────────────────── -->
-<div id="loginScreen">
-  <div class="login-glow"></div>
-  <div class="login-logo-wrap">
-    <div class="login-icon">💰</div>
-    <div class="login-title">Bol$illo Lleno</div>
-    <div class="login-sub">PANEL ADMIN</div>
-  </div>
-  <div class="login-card">
-    <div class="field">
-      <label>Email</label>
-      <input type="email" id="emailI" placeholder="admin@bolsillo.com" autocomplete="username" inputmode="email" onkeydown="if(event.key==='Enter')login()">
-    </div>
-    <div class="field">
-      <label>Contraseña</label>
-      <input type="password" id="pwdI" placeholder="••••••••" autocomplete="current-password" onkeydown="if(event.key==='Enter')login()">
-    </div>
-    <button class="btn-login ripple-host" onclick="login()">Entrar al Panel →</button>
-    <div id="loginError"></div>
-  </div>
-</div>
 
 <!-- ─── APP ─────────────────────── -->
-<div id="app" style="display:none">
+<div id="app" style="display:flex">
 
   <!-- TOP BAR -->
   <div id="topbar">
@@ -903,7 +882,7 @@ html,body{
     <div class="tb-actions">
       <div class="tb-btn ripple-host" id="notiStatusBtn" title="Estado notificaciones" onclick="showNotiStatus()" style="position:relative">🔔<span id="notiDot" style="position:absolute;top:6px;right:6px;width:7px;height:7px;border-radius:50%;background:var(--text3);border:1.5px solid var(--surface);display:block"></span></div>
       <div class="tb-btn ripple-host" id="syncBtn" onclick="syncAll()" title="Sincronizar">🔄</div>
-      <div class="tb-btn ripple-host" onclick="confirmLogout()">🚪</div>
+
     </div>
   </div>
 
@@ -1883,24 +1862,7 @@ Mientras tanto puedes ver los sorteos activos en nuestra página 👇</textarea>
     </div>
   </div>
 </div>
-<!-- ─── MODAL: CONFIRMAR LOGOUT ─────── -->
-<div class="modal-overlay" id="mLogout">
-  <div class="modal">
-    <div class="modal-handle"></div>
-    <div class="modal-hdr">
-      <div class="modal-title">Cerrar sesión</div>
-      <button class="modal-close" onclick="closeModal('mLogout')">✕</button>
-    </div>
-    <div class="modal-body" style="text-align:center;padding:30px 20px">
-      <div style="font-size:3em;margin-bottom:14px">🚪</div>
-      <div style="font-size:.95em;color:var(--text2);font-weight:600">¿Seguro que quieres cerrar sesión?</div>
-    </div>
-    <div class="modal-footer">
-      <button class="btn btn-ghost ripple-host" onclick="closeModal('mLogout')">Cancelar</button>
-      <button class="btn btn-red ripple-host" onclick="doLogout()">Salir</button>
-    </div>
-  </div>
-</div>
+
 
 <script>
 /* ── FIREBASE CONFIG ──────────────── */
@@ -1918,6 +1880,7 @@ const ADMIN='admin@bolsillo.com';
 
 /* ── STATE ────────────────────────── */
 let sorteos=[],occupied={},pending={},clients={},clientesDB=[],combosSorteo={};
+let allOccupied={},allPending={};
 let allOccupied={},allPending={};
 let adminSel=[],numFilter='todos',numSorteoId='',estadoSel='pag';
 let fabMode='sorteo',currentSection='dash';
@@ -1962,24 +1925,14 @@ function login(){
     })
     .catch(e=>{
       load(false);
-      const m={
-        'auth/user-not-found':'Usuario no encontrado',
-        'auth/wrong-password':'Contraseña incorrecta',
-        'auth/invalid-credential':'Credenciales incorrectas',
-        'auth/invalid-email':'Email invalido',
-        'auth/network-request-failed':'Error de red. Verifica tu internet.',
-        'auth/too-many-requests':'Demasiados intentos. Espera unos minutos.',
-        'auth/operation-not-allowed':'Dominio no autorizado en Firebase.'
-      };
-      err.textContent=m[e.code]||('Error: '+e.code);
-      err.style.display='block';
+      const m={'auth/user-not-found':'Usuario no encontrado','auth/wrong-password':'Contraseña incorrecta','auth/invalid-credential':'Credenciales incorrectas','auth/invalid-email':'Email inválido'};
+      err.textContent=m[e.code]||'Error de autenticación';err.style.display='block';
     });
 }
-firebase.auth().onAuthStateChanged(u=>{if(u&&u.email===ADMIN)launchApp()});
+// Sin login - carga directa
+launchApp();
 
 function launchApp(){
-  document.getElementById('loginScreen').classList.add('hidden');
-  document.getElementById('app').style.display='flex';
   initData();
 }
 function confirmLogout(){openModal('mLogout')}
@@ -3311,11 +3264,10 @@ let waDestino='todos', waSiestaActiva=false, waTplActual='';
 
 // ── Inicializar al entrar a la sección ──
 function initWhatsapp(){
-  waCargarConfig();      // Lee config desde Firebase
+  waCargarConfig();
   waCargarSorteos();
   waContarDestinatarios();
-  waCargarEstadoSiesta(); // Lee siesta desde Firebase
-  cargarNombresPlantillas(); // Lee plantillas desde Firebase
+  waCargarEstadoSiesta();
   setTimeout(initWaDashboard,400);
 }
 
@@ -3686,8 +3638,6 @@ async function waEnviarCampana(){
 
 // ── Config ──
 function waGetConfig(){
-  // Lee desde localStorage como caché rápido
-  // Los datos reales se sincronizan desde Firebase al cargar
   const token=localStorage.getItem('wa_token')||'';
   const phoneId=localStorage.getItem('wa_phoneId')||'';
   const numero=localStorage.getItem('wa_numero')||'';
@@ -3695,21 +3645,13 @@ function waGetConfig(){
 }
 
 function waCargarConfig(){
-  // Primero leer desde Firebase (fuente de verdad)
-  db.ref('wa_config').once('value').then(snap=>{
-    const d=snap.val()||{};
-    if(d.token){
-      localStorage.setItem('wa_token',d.token);
-      localStorage.setItem('wa_phoneId',d.phoneId||'');
-      localStorage.setItem('wa_numero',d.numero||'');
-    }
-    const t=document.getElementById('waCfgToken');
-    const p=document.getElementById('waCfgPhoneId');
-    const n=document.getElementById('waCfgNumero');
-    if(t)t.value=d.token||localStorage.getItem('wa_token')||'';
-    if(p)p.value=d.phoneId||localStorage.getItem('wa_phoneId')||'';
-    if(n)n.value=d.numero||localStorage.getItem('wa_numero')||'';
-  });
+  const{token,phoneId,numero}=waGetConfig();
+  const t=document.getElementById('waCfgToken');
+  const p=document.getElementById('waCfgPhoneId');
+  const n=document.getElementById('waCfgNumero');
+  if(t)t.value=token;
+  if(p)p.value=phoneId;
+  if(n)n.value=numero;
 }
 
 function waGuardarConfig(){
@@ -3717,8 +3659,6 @@ function waGuardarConfig(){
   const phoneId=document.getElementById('waCfgPhoneId').value.trim();
   const numero=document.getElementById('waCfgNumero').value.trim();
   if(!token||!phoneId){snack('Completa token y Phone ID','err');return;}
-  // Guardar en Firebase (fuente de verdad) Y localStorage (caché rápido)
-  db.ref('wa_config').set({token,phoneId,numero});
   localStorage.setItem('wa_token',token);
   localStorage.setItem('wa_phoneId',phoneId);
   localStorage.setItem('wa_numero',numero);
@@ -3744,40 +3684,33 @@ async function waTestConexion(){
 
 // ── Modo Siesta ──
 function waCargarEstadoSiesta(){
-  // Leer desde Firebase en tiempo real
-  db.ref('wa_siesta').once('value').then(snap=>{
-    const d=snap.val()||{};
-    waSiestaActiva=d.activa===true;
-    const toggle=document.getElementById('waToggle');
-    const status=document.getElementById('waSiestaStatus');
-    const msg=document.getElementById('waSiestaMsg');
-    if(toggle) toggle.classList.toggle('on',waSiestaActiva);
-    if(status){
-      status.textContent=waSiestaActiva?'🟢 Bot activo — respondiendo por ti':'🔴 Bot desactivado';
-      status.style.color=waSiestaActiva?'var(--green2)':'var(--text3)';
-    }
-    if(d.mensaje&&msg) msg.value=d.mensaje;
-  });
+  waSiestaActiva=localStorage.getItem('wa_siesta')==='true';
+  const toggle=document.getElementById('waToggle');
+  const status=document.getElementById('waSiestaStatus');
+  const msg=document.getElementById('waSiestaMsg');
+  if(toggle) toggle.classList.toggle('on',waSiestaActiva);
+  if(status){
+    status.textContent=waSiestaActiva?'🟢 Bot activo — respondiendo por ti':'🔴 Bot desactivado';
+    status.style.color=waSiestaActiva?'var(--green2)':'var(--text3)';
+  }
+  const savedMsg=localStorage.getItem('wa_siesta_msg');
+  if(savedMsg&&msg) msg.value=savedMsg;
+  db.ref('wa_siesta/activa').set(waSiestaActiva);
 }
 
 function waCambiarSiesta(){
   waSiestaActiva=!waSiestaActiva;
-  // Firebase es la fuente de verdad - Cloudflare Worker lee desde aqui
-  db.ref('wa_siesta/activa').set(waSiestaActiva).then(()=>{
-    const toggle=document.getElementById('waToggle');
-    const status=document.getElementById('waSiestaStatus');
-    if(toggle) toggle.classList.toggle('on',waSiestaActiva);
-    if(status){
-      status.textContent=waSiestaActiva?'🟢 Bot activo — respondiendo por ti':'🔴 Bot desactivado';
-      status.style.color=waSiestaActiva?'var(--green2)':'var(--text3)';
-    }
-    snack(waSiestaActiva?'🤖 Bot activado — respondiendo por ti':'⏹️ Bot desactivado');
-  });
+  localStorage.setItem('wa_siesta',waSiestaActiva);
+  // Sincronizar a Firebase para que el Worker de Cloudflare lo lea
+  db.ref('wa_siesta/activa').set(waSiestaActiva);
+  waCargarEstadoSiesta();
+  snack(waSiestaActiva?'🤖 Bot activado — respondiendo por ti':'⏹️ Bot desactivado');
 }
 
 function waGuardarSiesta(){
   const msg=document.getElementById('waSiestaMsg').value.trim();
   if(!msg){snack('Escribe un mensaje','err');return;}
+  localStorage.setItem('wa_siesta_msg',msg);
   db.ref('wa_siesta/mensaje').set(msg);
   snack('Mensaje guardado ✅');
 }
@@ -4142,7 +4075,7 @@ function setBotPersonalidad(tipo,el){
   if(el) el.classList.add('active');
   const desc=document.getElementById('botPersDesc');
   if(desc) desc.textContent=botPersonalidades[tipo]||'';
-  db.ref('wa_bot_personalidad').set(tipo);
+  localStorage.setItem('bot_personalidad',tipo);
   snack('Personalidad del bot actualizada');
 }
 
@@ -4442,7 +4375,7 @@ async function enviarMsgBot(){
   try{
     const res=await fetch('https://api.anthropic.com/v1/messages',{
       method:'POST',
-      headers:{'Content-Type':'application/json'},
+      headers:{'Content-Type':'application/json','anthropic-dangerous-direct-browser-access':'true'},
       body:JSON.stringify({
         model:'claude-haiku-4-5-20251001',
         max_tokens:400,
@@ -4558,19 +4491,16 @@ function guardarNombresPlantillas(){
   waPlantillasAprobadas.recordatorio=document.getElementById('tplRecordatorio').value.trim()||'bolsillo_recordatorio';
   waPlantillasAprobadas.bienvenida=document.getElementById('tplBienvenida').value.trim()||'bolsillo_bienvenida';
   waPlantillasAprobadas.ganador=document.getElementById('tplGanador').value.trim()||'bolsillo_ganador';
-  // Guardar en Firebase
-  db.ref('wa_plantillas').set(waPlantillasAprobadas);
+  localStorage.setItem('wa_plantillas',JSON.stringify(waPlantillasAprobadas));
   snack('✅ Nombres de plantillas guardados');
 }
 function cargarNombresPlantillas(){
-  // Leer desde Firebase
-  db.ref('wa_plantillas').once('value').then(snap=>{
-    const p=snap.val()||{};
-    if(!Object.keys(p).length) return;
-    Object.assign(waPlantillasAprobadas,p);
-    const ids={sorteo:'tplSorteo',recordatorio:'tplRecordatorio',bienvenida:'tplBienvenida',ganador:'tplGanador'};
-    Object.entries(ids).forEach(([k,id])=>{const e=document.getElementById(id);if(e&&p[k])e.value=p[k];});
-  });
+  const saved=localStorage.getItem('wa_plantillas');
+  if(!saved)return;
+  const p=JSON.parse(saved);
+  Object.assign(waPlantillasAprobadas,p);
+  const ids={sorteo:'tplSorteo',recordatorio:'tplRecordatorio',bienvenida:'tplBienvenida',ganador:'tplGanador'};
+  Object.entries(ids).forEach(([k,id])=>{const e=document.getElementById(id);if(e&&p[k])e.value=p[k];});
 }
 /* ══ FIN PLANTILLAS ══ */
 
@@ -4697,6 +4627,103 @@ Máximo 3 líneas, español, amigable.';
   }catch(e){snack('Error','err');}
 }
 /* ══ FIN BANDEJA ══ */
+
+/* BANDEJA DE ENTRADA */
+let chatActualTel='';
+function initInbox(){
+  const lista=document.getElementById('inboxLista');
+  if(!lista)return;
+  db.ref('wa_inbox').on('value',snap=>{
+    const data=snap.val()||{};
+    const convs=Object.entries(data).map(([tel,v])=>({tel,...v})).sort((a,b)=>(b.info?.hora||0)-(a.info?.hora||0));
+    if(!convs.length){lista.innerHTML='<div style="text-align:center;color:var(--text3);padding:40px;font-size:.84em">Sin mensajes aun</div>';return;}
+    lista.innerHTML=convs.map(c=>{
+      const nombre=c.info?.nombre||clientesDB.find(x=>x.telefono===c.tel||('57'+x.telefono)===c.tel)?.nombre||c.tel;
+      const ultimo=c.info?.ultimoMensaje||'';
+      const hora=c.info?.hora?new Date(c.info.hora).toLocaleTimeString('es-CO',{hour:'2-digit',minute:'2-digit'}):'';
+      const dot=c.info?.noLeidos?'<span style="width:8px;height:8px;border-radius:50%;background:var(--green);display:inline-block;margin-left:6px"></span>':'';
+      return '<div class="lead-row" onclick="abrirChat(''+c.tel+'',''+nombre.replace(/'/g,'')+'')" style="display:flex;align-items:center;gap:10px;padding:11px 14px;border-radius:var(--radius);background:var(--surface2);border:1px solid var(--border2);margin-bottom:6px;cursor:pointer">'
+        +'<div style="width:38px;height:38px;border-radius:10px;background:rgba(245,158,11,.12);display:flex;align-items:center;justify-content:center;font-weight:900;color:var(--gold);flex-shrink:0">'+nombre[0].toUpperCase()+'</div>'
+        +'<div style="flex:1;min-width:0"><div style="font-weight:700;font-size:.88em;display:flex;align-items:center">'+nombre+dot+'</div>'
+        +'<div style="font-size:.7em;color:var(--text3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+ultimo+'</div></div>'
+        +'<div style="font-size:.7em;color:var(--text3);flex-shrink:0">'+hora+'</div></div>';
+    }).join('');
+  });
+}
+function abrirChat(tel,nombre){
+  chatActualTel=tel;
+  document.getElementById('inboxVista').style.display='none';
+  document.getElementById('inboxChat').style.display='block';
+  document.getElementById('chatNombre').textContent=nombre||tel;
+  document.getElementById('chatTel').textContent='📱 +'+tel;
+  db.ref('wa_inbox/'+tel+'/info/noLeidos').set(false);
+  const msgs=document.getElementById('chatMensajes');
+  msgs.innerHTML='<div style="text-align:center;color:var(--text3);font-size:.78em;padding:10px">Cargando...</div>';
+  db.ref('wa_inbox/'+tel+'/mensajes').on('value',snap=>{
+    const data=snap.val()||{};
+    const lista=Object.values(data).sort((a,b)=>a.hora-b.hora);
+    if(!lista.length){msgs.innerHTML='<div style="text-align:center;color:var(--text3);padding:20px">Sin mensajes</div>';return;}
+    msgs.innerHTML=lista.map(m=>{
+      const ent=m.tipo==='entrante';
+      const hora=new Date(m.hora).toLocaleTimeString('es-CO',{hour:'2-digit',minute:'2-digit'});
+      return '<div style="display:flex;flex-direction:column;align-items:'+(ent?'flex-start':'flex-end')+';gap:2px">'
+        +'<div style="max-width:82%;padding:9px 12px;border-radius:'+(ent?'12px 12px 12px 4px':'12px 12px 4px 12px')+';font-size:.82em;line-height:1.5;background:'+(ent?'var(--surface2)':'linear-gradient(135deg,var(--gold),#b45309)')+';color:'+(ent?'var(--text)':'#000')+'">'+( m.texto||'')+'</div>'
+        +'<div style="font-size:.65em;color:var(--text3)">'+hora+' '+(m.de==='bot'?'🤖':'')+'</div></div>';
+    }).join('');
+    msgs.scrollTop=msgs.scrollHeight;
+  });
+}
+function cerrarChat(){
+  chatActualTel='';
+  db.ref('wa_inbox').off();
+  document.getElementById('inboxVista').style.display='block';
+  document.getElementById('inboxChat').style.display='none';
+  initInbox();
+}
+async function enviarRespuesta(){
+  const input=document.getElementById('chatInput');
+  const msg=input.value.trim();
+  if(!msg||!chatActualTel)return;
+  input.value='';
+  const{token,phoneId}=waGetConfig();
+  if(!token||!phoneId){snack('Configura token en Config','err');return;}
+  const tel=chatActualTel.replace(/[^0-9]/g,'');
+  const num=tel.startsWith('57')?tel:'57'+tel;
+  try{
+    const res=await fetch('https://graph.facebook.com/v18.0/'+phoneId+'/messages',{
+      method:'POST',
+      headers:{'Content-Type':'application/json','Authorization':'Bearer '+token},
+      body:JSON.stringify({messaging_product:'whatsapp',to:num,type:'text',text:{body:msg}})
+    });
+    const data=await res.json();
+    if(data.messages){
+      db.ref('wa_inbox/'+chatActualTel+'/mensajes/out_'+Date.now()).set({de:'yo',texto:msg,hora:Date.now(),tipo:'saliente'});
+      db.ref('wa_inbox/'+chatActualTel+'/info').update({ultimoMensaje:msg,hora:Date.now()});
+      snack('Mensaje enviado');
+    }else snack('Error: '+(data.error?.message||'token invalido'),'err');
+  }catch(e){snack('Error de red','err');}
+}
+async function responderConBot(){
+  if(!chatActualTel)return;
+  const snap=await db.ref('wa_inbox/'+chatActualTel+'/mensajes').once('value');
+  const lista=Object.values(snap.val()||{}).sort((a,b)=>a.hora-b.hora);
+  const ultimo=lista.filter(m=>m.tipo==='entrante').pop();
+  if(!ultimo){snack('Sin mensajes del cliente','err');return;}
+  const s=sorteos[0];
+  const sys='Eres asistente de Bolsillo Lleno x5, sorteos Colombia. Sorteo: '+(s?s.name+' Premio $'+parseInt(s.premioMayor||0).toLocaleString():'Sin sorteo')+'. Nequi 3502429433. Maximo 3 lineas, espanol, amigable.';
+  snack('Generando...');
+  try{
+    const res=await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',
+      headers:{'Content-Type':'application/json','anthropic-dangerous-direct-browser-access':'true'},
+      body:JSON.stringify({model:'claude-haiku-4-5-20251001',max_tokens:200,system:sys,messages:[{role:'user',content:ultimo.texto}]})
+    });
+    const data=await res.json();
+    const resp=(data.content&&data.content[0]&&data.content[0].text)||'';
+    if(resp){document.getElementById('chatInput').value=resp;snack('Lista - revisa y envia');}
+  }catch(e){snack('Error','err');}
+}
+/* FIN BANDEJA */
 </script>
 </body>
 </html>
