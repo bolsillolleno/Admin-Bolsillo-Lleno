@@ -877,13 +877,13 @@ html,body{
   <div class="login-card">
     <div class="field">
       <label>Email</label>
-      <input type="email" id="emailI" placeholder="admin@bolsillo.com" autocomplete="username" inputmode="email">
+      <input type="email" id="emailI" placeholder="admin@bolsillo.com" autocomplete="username" inputmode="email" onkeydown="if(event.key==='Enter')login()">
     </div>
     <div class="field">
       <label>Contraseña</label>
       <input type="password" id="pwdI" placeholder="••••••••" autocomplete="current-password" onkeydown="if(event.key==='Enter')login()">
     </div>
-    <button class="btn-login ripple-host" onclick="login(this)">Entrar al Panel →</button>
+    <button class="btn-login ripple-host" onclick="login()">Entrar al Panel →</button>
     <div id="loginError"></div>
   </div>
 </div>
@@ -1962,8 +1962,17 @@ function login(){
     })
     .catch(e=>{
       load(false);
-      const m={'auth/user-not-found':'Usuario no encontrado','auth/wrong-password':'Contraseña incorrecta','auth/invalid-credential':'Credenciales incorrectas','auth/invalid-email':'Email inválido'};
-      err.textContent=m[e.code]||'Error de autenticación';err.style.display='block';
+      const m={
+        'auth/user-not-found':'Usuario no encontrado',
+        'auth/wrong-password':'Contraseña incorrecta',
+        'auth/invalid-credential':'Credenciales incorrectas',
+        'auth/invalid-email':'Email invalido',
+        'auth/network-request-failed':'Error de red. Verifica tu internet.',
+        'auth/too-many-requests':'Demasiados intentos. Espera unos minutos.',
+        'auth/operation-not-allowed':'Dominio no autorizado en Firebase.'
+      };
+      err.textContent=m[e.code]||('Error: '+e.code);
+      err.style.display='block';
     });
 }
 firebase.auth().onAuthStateChanged(u=>{if(u&&u.email===ADMIN)launchApp()});
