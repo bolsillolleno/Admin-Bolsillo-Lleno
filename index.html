@@ -7,9 +7,6 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="theme-color" content="#030d07">
-<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
-<meta http-equiv="Pragma" content="no-cache">
-<meta http-equiv="Expires" content="0">
 <title>Admin | Bol$illo Lleno</title>
 <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
@@ -3756,7 +3753,7 @@ function waCargarEstadoSiesta(){
 
 function waCambiarSiesta(){
   waSiestaActiva=!waSiestaActiva;
-  // Firebase es la fuente de verdad — Cloudflare Worker lee desde aquí
+  // Firebase es la fuente de verdad - Cloudflare Worker lee desde aqui
   db.ref('wa_siesta/activa').set(waSiestaActiva).then(()=>{
     const toggle=document.getElementById('waToggle');
     const status=document.getElementById('waSiestaStatus');
