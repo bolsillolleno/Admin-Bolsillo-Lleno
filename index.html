@@ -1044,7 +1044,8 @@ html,body{
 
       <!-- Sub-tabs -->
       <div class="wa-tabs">
-        <div class="wa-tab active" id="wat-dashboard" onclick="waGoTab('dashboard');initWaDashboard()">📊 CRM</div>
+        <div class="wa-tab active" id="wat-inbox" onclick="waGoTab('inbox');initInbox()">💬 Bandeja</div>
+        <div class="wa-tab" id="wat-dashboard" onclick="waGoTab('dashboard');initWaDashboard()">📊 CRM</div>
         <div class="wa-tab" id="wat-funnel" onclick="waGoTab('funnel');initFunnel()">🎯 Embudo</div>
         <div class="wa-tab" id="wat-secuencias" onclick="waGoTab('secuencias')">⚡ Secuencias</div>
         <div class="wa-tab" id="wat-campanas" onclick="waGoTab('campanas')">📣 Campañas</div>
@@ -1057,7 +1058,31 @@ html,body{
       </div>
 
       <!-- ══ TAB: CRM DASHBOARD ══ -->
-      <div id="wt-dashboard" class="wa-tab-content active">
+      <!-- BANDEJA DE ENTRADA -->
+      <div id="wt-inbox" class="wa-tab-content active">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+          <div style="font-size:.72em;font-weight:800;color:var(--text3);letter-spacing:.6px;text-transform:uppercase">💬 Mensajes WhatsApp</div>
+          <button class="btn btn-ghost btn-sm" onclick="initInbox()">🔄</button>
+        </div>
+        <div id="inboxVista">
+          <div id="inboxLista"><div style="text-align:center;color:var(--text3);padding:40px;font-size:.84em">Cuando un cliente te escriba aparecerá aquí en tiempo real 📲</div></div>
+        </div>
+        <div id="inboxChat" style="display:none">
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px">
+            <button class="btn btn-ghost btn-sm" onclick="cerrarChat()">← Volver</button>
+            <div style="flex:1"><div style="font-weight:800;font-size:.9em" id="chatNombre">Chat</div><div style="font-size:.7em;color:var(--text3)" id="chatTel"></div></div>
+            <button class="btn btn-ghost btn-sm" onclick="responderConBot()" style="color:var(--gold);font-size:.72em">🤖 Bot</button>
+          </div>
+          <div id="chatMensajes" style="min-height:300px;max-height:400px;overflow-y:auto;display:flex;flex-direction:column;gap:8px;margin-bottom:12px;padding:4px 0"></div>
+          <div style="display:flex;gap:8px">
+            <input id="chatInput" type="text" placeholder="Escribe tu respuesta..." style="flex:1;background:var(--surface2);border:1px solid var(--border2);border-radius:var(--radius);padding:10px 12px;color:var(--text1);font-size:.84em;outline:none;font-family:inherit" onkeydown="if(event.key==='Enter')enviarRespuesta()">
+            <button class="btn btn-gold ripple-host" onclick="enviarRespuesta()" style="flex-shrink:0">📤</button>
+          </div>
+          <div style="font-size:.68em;color:var(--text3);margin-top:6px;text-align:center">Enviado directo por WhatsApp API</div>
+        </div>
+      </div>
+
+      <div id="wt-dashboard" class="wa-tab-content">
         <!-- KPIs rápidos -->
         <div class="stats2" style="margin-bottom:14px">
           <div class="stat-card blue" style="--accent:rgba(59,130,246,.08)">
@@ -1893,6 +1918,7 @@ const ADMIN='admin@bolsillo.com';
 
 /* ── STATE ────────────────────────── */
 let sorteos=[],occupied={},pending={},clients={},clientesDB=[],combosSorteo={};
+let allOccupied={},allPending={};
 let adminSel=[],numFilter='todos',numSorteoId='',estadoSel='pag';
 let fabMode='sorteo',currentSection='dash';
 
@@ -1971,6 +1997,15 @@ function initData(){
     if(currentSection==='clientes')renderClients();
   });
   loadDashReservas();
+  // Cargar TODOS los occupied y pending para CRM
+  db.ref('occupied').on('value',snap=>{
+    allOccupied=snap.val()||{};
+    if(currentSection==='whatsapp') setTimeout(initWaDashboard,200);
+  });
+  db.ref('pending').on('value',snap=>{
+    allPending=snap.val()||{};
+    if(currentSection==='whatsapp') setTimeout(initWaDashboard,200);
+  });
 }
 
 /* ── NOTIFICATION LISTENERS ──────── */
@@ -3698,14 +3733,16 @@ function waCargarEstadoSiesta(){
   }
   const savedMsg=localStorage.getItem('wa_siesta_msg');
   if(savedMsg&&msg) msg.value=savedMsg;
-  db.ref('wa_siesta').set({activa:waSiestaActiva});
+  db.ref('wa_siesta/activa').set(waSiestaActiva);
 }
 
 function waCambiarSiesta(){
   waSiestaActiva=!waSiestaActiva;
   localStorage.setItem('wa_siesta',waSiestaActiva);
+  // Sincronizar a Firebase para que el Worker de Cloudflare lo lea
+  db.ref('wa_siesta/activa').set(waSiestaActiva);
   waCargarEstadoSiesta();
-  snack(waSiestaActiva?'😴 Modo siesta activado':'⏹️ Modo siesta desactivado');
+  snack(waSiestaActiva?'🤖 Bot activado — respondiendo por ti':'⏹️ Bot desactivado');
 }
 
 function waGuardarSiesta(){
@@ -3736,35 +3773,28 @@ function waGoTab(tab){
 function initWaDashboard(){
   const conTel=clientesDB.filter(c=>c.telefono&&c.telefono.length>6);
 
-  // Clasificar leads
-  const ganados=conTel.filter(c=>{
-    let found=false;
-    Object.values(occupied||{}).forEach(nums=>{
-      Object.values(nums||{}).forEach(n=>{ if(n.telefono===c.telefono&&n.estado==='pag') found=true; });
+  // Usar allOccupied/allPending — cargados globalmente con TODOS los sorteos
+  const compradosTels=new Set();
+  const comprasCount={};
+  Object.values(allOccupied||{}).forEach(nums=>{
+    Object.values(nums||{}).forEach(n=>{
+      if(n&&n.telefono){
+        compradosTels.add(String(n.telefono));
+        comprasCount[n.telefono]=(comprasCount[n.telefono]||0)+1;
+      }
     });
-    return found;
   });
-  const pendientesWa=conTel.filter(c=>{
-    let found=false;
-    Object.values(pending||{}).forEach(nums=>{
-      Object.values(nums||{}).forEach(n=>{ if(n.telefono===c.telefono) found=true; });
+  const pendientesTels=new Set();
+  Object.values(allPending||{}).forEach(nums=>{
+    Object.values(nums||{}).forEach(n=>{
+      if(n&&n.telefono) pendientesTels.add(String(n.telefono));
     });
-    return found;
   });
-  const calientes=conTel.filter(c=>{
-    let cnt=0;
-    Object.values(occupied||{}).forEach(nums=>{
-      Object.values(nums||{}).forEach(n=>{ if(n.telefono===c.telefono) cnt++; });
-    });
-    return cnt>=2 && cnt<5;
-  });
-  const nuevos=conTel.filter(c=>{
-    let found=false;
-    Object.values(occupied||{}).forEach(nums=>{
-      Object.values(nums||{}).forEach(n=>{ if(n.telefono===c.telefono) found=true; });
-    });
-    return !found;
-  });
+
+  const ganados=conTel.filter(c=>compradosTels.has(String(c.telefono)));
+  const pendientesWa=conTel.filter(c=>pendientesTels.has(String(c.telefono))&&!compradosTels.has(String(c.telefono)));
+  const calientes=conTel.filter(c=>(comprasCount[c.telefono]||0)>=2);
+  const nuevos=conTel.filter(c=>!compradosTels.has(String(c.telefono))&&!pendientesTels.has(String(c.telefono)));
 
   document.getElementById('crmNuevos').textContent=nuevos.length;
   document.getElementById('crmCalientes').textContent=calientes.length;
@@ -3809,13 +3839,7 @@ function initWaDashboard(){
   document.getElementById('fn-caliente').textContent=calientes.length;
   document.getElementById('fn-pendiente').textContent=pendientesWa.length;
   document.getElementById('fn-ganado').textContent=ganados.length;
-  const fantasmas=conTel.filter(c=>{
-    let found=false;
-    Object.values(occupied||{}).forEach(nums=>{
-      Object.values(nums||{}).forEach(n=>{ if(n.telefono===c.telefono) found=true; });
-    });
-    return !found;
-  });
+  const fantasmas=conTel.filter(c=>!compradosTels.has(String(c.telefono))&&!pendientesTels.has(String(c.telefono)));
   document.getElementById('fn-inactivo').textContent=fantasmas.length;
 
   // Stats bot
@@ -4517,6 +4541,130 @@ function cargarNombresPlantillas(){
   Object.entries(ids).forEach(([k,id])=>{const e=document.getElementById(id);if(e&&p[k])e.value=p[k];});
 }
 /* ══ FIN PLANTILLAS ══ */
+
+/* ══════════════════════════════════════
+   BANDEJA DE ENTRADA WHATSAPP
+══════════════════════════════════════ */
+let chatActualTel='';
+
+function initInbox(){
+  const lista=document.getElementById('inboxLista');
+  if(!lista)return;
+  lista.innerHTML='<div style="text-align:center;color:var(--text3);padding:20px;font-size:.82em">Cargando...</div>';
+  db.ref('wa_inbox').on('value',snap=>{
+    const data=snap.val()||{};
+    const convs=Object.entries(data).map(([tel,v])=>({tel,...v}));
+    convs.sort((a,b)=>(b.info?.hora||0)-(a.info?.hora||0));
+    if(!convs.length){
+      lista.innerHTML='<div style="text-align:center;color:var(--text3);padding:40px;font-size:.84em">📲 Esperando mensajes...<br><br>Cuando un cliente escriba aparecerá aquí</div>';
+      return;
+    }
+    lista.innerHTML=convs.map(c=>{
+      const nombre=c.info?.nombre||clientesDB.find(x=>x.telefono===c.tel||('57'+x.telefono)===c.tel)?.nombre||c.tel;
+      const ultimo=c.info?.ultimoMensaje||'';
+      const hora=c.info?.hora?new Date(c.info.hora).toLocaleTimeString('es-CO',{hour:'2-digit',minute:'2-digit'}):'';
+      const dot=c.info?.noLeidos?'<span style="width:8px;height:8px;border-radius:50%;background:var(--green);display:inline-block;margin-left:6px;flex-shrink:0"></span>':'';
+      return `<div class="lead-row" onclick="abrirChat('${c.tel}','${(nombre+'').replace(/'/g,'')}')">
+        <div class="lead-avatar">${(nombre+'?')[0].toUpperCase()}</div>
+        <div class="lead-info">
+          <div class="lead-name" style="display:flex;align-items:center">${nombre}${dot}</div>
+          <div class="lead-meta" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:180px">${ultimo}</div>
+        </div>
+        <div style="font-size:.7em;color:var(--text3);flex-shrink:0">${hora}</div>
+      </div>`;
+    }).join('');
+  });
+}
+
+function abrirChat(tel,nombre){
+  chatActualTel=tel;
+  document.getElementById('inboxVista').style.display='none';
+  document.getElementById('inboxChat').style.display='block';
+  document.getElementById('chatNombre').textContent=nombre||tel;
+  document.getElementById('chatTel').textContent='📱 +'+tel;
+  db.ref('wa_inbox/'+tel+'/info/noLeidos').set(false);
+  const msgs=document.getElementById('chatMensajes');
+  msgs.innerHTML='<div style="text-align:center;color:var(--text3);font-size:.78em;padding:10px">Cargando...</div>';
+  db.ref('wa_inbox/'+tel+'/mensajes').on('value',snap=>{
+    const data=snap.val()||{};
+    const mensajes=Object.values(data).sort((a,b)=>a.hora-b.hora);
+    if(!mensajes.length){msgs.innerHTML='<div style="text-align:center;color:var(--text3);font-size:.78em;padding:20px">Sin mensajes</div>';return;}
+    msgs.innerHTML=mensajes.map(m=>{
+      const esEntrante=m.tipo==='entrante';
+      const hora=new Date(m.hora).toLocaleTimeString('es-CO',{hour:'2-digit',minute:'2-digit'});
+      return `<div style="display:flex;flex-direction:column;align-items:${esEntrante?'flex-start':'flex-end'};gap:2px">
+        <div style="max-width:82%;padding:9px 12px;border-radius:${esEntrante?'12px 12px 12px 4px':'12px 12px 4px 12px'};font-size:.82em;line-height:1.5;background:${esEntrante?'var(--surface2)':'linear-gradient(135deg,var(--gold),#b45309)'};color:${esEntrante?'var(--text)':'#000'};border:1px solid ${esEntrante?'var(--border2)':'transparent'}">${m.texto||''}</div>
+        <div style="font-size:.65em;color:var(--text3)">${hora} ${m.tipo==='saliente'&&m.de==='bot'?'🤖':''}</div>
+      </div>`;
+    }).join('');
+    msgs.scrollTop=msgs.scrollHeight;
+  });
+}
+
+function cerrarChat(){
+  chatActualTel='';
+  db.ref('wa_inbox').off();
+  document.getElementById('inboxVista').style.display='block';
+  document.getElementById('inboxChat').style.display='none';
+  initInbox();
+}
+
+async function enviarRespuesta(){
+  const input=document.getElementById('chatInput');
+  const msg=input.value.trim();
+  if(!msg||!chatActualTel)return;
+  input.value='';
+  const{token,phoneId}=waGetConfig();
+  if(!token||!phoneId){snack('Configura token en ⚙️ Config','err');return;}
+  const tel=chatActualTel.replace(/\D/g,'');
+  const num=tel.startsWith('57')?tel:'57'+tel;
+  try{
+    const res=await fetch(`https://graph.facebook.com/v18.0/${phoneId}/messages`,{
+      method:'POST',
+      headers:{'Content-Type':'application/json','Authorization':'Bearer '+token},
+      body:JSON.stringify({messaging_product:'whatsapp',to:num,type:'text',text:{body:msg}})
+    });
+    const data=await res.json();
+    if(data.messages){
+      const outId='out_'+Date.now();
+      db.ref('wa_inbox/'+chatActualTel+'/mensajes/'+outId).set({de:'yo',texto:msg,hora:Date.now(),tipo:'saliente'});
+      db.ref('wa_inbox/'+chatActualTel+'/info').update({ultimoMensaje:msg,hora:Date.now()});
+      waRegistrarEnvio(chatActualTel,'respuesta_manual','enviado');
+      snack('✅ Mensaje enviado');
+    } else snack('Error: '+(data.error?.message||'token inválido'),'err');
+  }catch(e){snack('Error de red','err');}
+}
+
+async function responderConBot(){
+  if(!chatActualTel)return;
+  const snap=await db.ref('wa_inbox/'+chatActualTel+'/mensajes').once('value');
+  const msgs=Object.values(snap.val()||{}).sort((a,b)=>a.hora-b.hora);
+  const ultimoMsg=msgs.filter(m=>m.tipo==='entrante').pop();
+  if(!ultimoMsg){snack('Sin mensajes del cliente','err');return;}
+  const s=sorteos[0];
+  const bizInfo=document.getElementById('kbBizInfo')?document.getElementById('kbBizInfo').value:'';
+  const kbTexto=Object.entries(kbData||{}).filter(([k])=>k!=='_bizInfo').map(([,v])=>'P: '+v.pregunta+'
+R: '+v.respuesta).join('
+
+');
+  const sys='Eres el asistente de Bol$illo Lleno x5. '+(bizInfo||'Sorteos diarios Colombia.')+'
+Sorteo: '+(s?s.name+' Premio $'+parseInt(s.premioMayor||0).toLocaleString():'Sin sorteo')+'
+Nequi: 3502429433
+KB: '+(kbTexto||'ninguna')+'
+Máximo 3 líneas, español, amigable.';
+  snack('🤖 Generando...');
+  try{
+    const res=await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',
+      headers:{'Content-Type':'application/json','anthropic-dangerous-direct-browser-access':'true'},
+      body:JSON.stringify({model:'claude-haiku-4-5-20251001',max_tokens:200,system:sys,messages:[{role:'user',content:ultimoMsg.texto}]})
+    });
+    const data=await res.json();
+    const resp=(data.content&&data.content[0]&&data.content[0].text)||'';
+    if(resp){document.getElementById('chatInput').value=resp;snack('🤖 Lista — revisa y envía');}
+  }catch(e){snack('Error','err');}
+}
+/* ══ FIN BANDEJA ══ */
 </script>
 </body>
 </html>
