@@ -1,6 +1,33 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
+<script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+<script>
+// URL que Railway te dará (tipo: https://bolsillo-leno-bot-production.up.railway.app)
+const WA_SERVER_URL = 'bolsillo-lleno-bot-production.up.railway.app'; 
+
+const socket = io(WA_SERVER_URL);
+
+socket.on('connection-status', (status) => {
+  console.log('WhatsApp:', status);
+  // Actualiza tu UI
+  const el = document.getElementById('waConnectionStatus');
+  if(el) el.textContent = status;
+});
+
+socket.on('qr-code', (qrUrl) => {
+  // Muestra QR en tu panel
+  const container = document.getElementById('waQRContainer');
+  if(container) {
+    container.innerHTML = `<img src="${qrUrl}" style="max-width:280px;border-radius:12px">`;
+  }
+});
+
+socket.on('chats-update', (chats) => {
+  // Actualiza lista de conversaciones en tu pestaña WhatsApp
+  renderChatsList(chats); // Usa tu función existente
+});
+</script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <meta name="mobile-web-app-capable" content="yes">
@@ -1657,26 +1684,6 @@ Mientras tanto puedes ver los sorteos activos en nuestra página 👇</textarea>
 
       <!-- ══ TAB: CONFIG ══ -->
       <div id="wt-cfg" class="wa-tab-content">
-
-        <!-- Railway URL primero — es lo más importante -->
-        <div class="wa-card" style="border-color:rgba(139,92,246,.35);background:rgba(139,92,246,.06)">
-          <div class="wa-card-lbl" style="color:#a78bfa">🚂 URL del servidor Railway (Bot IA)</div>
-          <div style="font-size:.74em;color:var(--text3);margin-bottom:10px;line-height:1.6">
-            El Bot IA vive en Railway. Sin esta URL el bot no puede responder.
-          </div>
-          <div class="fg" style="margin-bottom:10px">
-            <label>URL pública de Railway</label>
-            <input type="url" id="waCfgRailway"
-              placeholder="https://bolsillo-lleno-bot-prod.up.railway.app"
-              style="background:var(--surface2);border:1px solid rgba(139,92,246,.3);border-radius:var(--radius);padding:10px 12px;color:var(--text);font-size:.84em;width:100%;outline:none">
-          </div>
-          <div style="display:flex;gap:8px">
-            <button class="btn btn-ghost btn-sm ripple-host" style="flex:1" onclick="testRailwayUrl()">📡 Probar</button>
-            <button class="btn btn-sm ripple-host" style="flex:1;background:rgba(139,92,246,.2);color:#a78bfa;border:1px solid rgba(139,92,246,.4)" onclick="guardarRailwayUrl()">💾 Guardar URL</button>
-          </div>
-          <div id="railwayTestResult" style="margin-top:8px;font-size:.74em;min-height:18px;text-align:center"></div>
-        </div>
-
         <div class="wa-card">
           <div class="wa-card-lbl">🔑 Credenciales Meta</div>
           <div class="fg" style="margin-bottom:12px">
@@ -1694,7 +1701,7 @@ Mientras tanto puedes ver los sorteos activos en nuestra página 👇</textarea>
           <button class="btn btn-gold ripple-host" style="width:100%" onclick="waGuardarConfig()">💾 Guardar config</button>
         </div>
         <div class="wa-card">
-          <div class="wa-card-lbl">🧪 Probar conexión WhatsApp</div>
+          <div class="wa-card-lbl">🧪 Probar conexión</div>
           <div style="font-size:.75em;color:var(--text3);margin-bottom:10px">Envía un mensaje de prueba a tu propio número</div>
           <button class="btn btn-ghost btn-sm ripple-host" style="width:100%" onclick="waTestConexion()">📡 Enviar mensaje de prueba</button>
           <div id="waCfgTestResult" style="margin-top:8px;font-size:.75em;min-height:16px;text-align:center"></div>
@@ -1933,14 +1940,13 @@ Mientras tanto puedes ver los sorteos activos en nuestra página 👇</textarea>
         ¿Enviarle un mensaje de confirmación a <strong id="cpNombre" style="color:var(--gold)"></strong>?
       </div>
       <textarea id="cpMensaje" rows="7" style="width:100%;background:var(--surface2);border:1px solid var(--border2);border-radius:var(--radius);padding:10px 12px;color:var(--text1);font-size:.82em;font-family:inherit;outline:none;resize:vertical;line-height:1.6"></textarea>
-      <div id="cpAviso24h" style="margin-top:8px;min-height:18px"></div>
-      <div style="font-size:.72em;color:var(--text3);margin-top:4px">
+      <div style="font-size:.72em;color:var(--text3);margin-top:8px">
         💡 Puedes editar el mensaje antes de enviar
       </div>
     </div>
     <div class="modal-footer">
       <button class="btn btn-ghost ripple-host" onclick="closeModal('mConfirmPago')">Ahora no</button>
-      <button id="btnEnviarConfirm" class="btn ripple-host" style="background:linear-gradient(135deg,#25d366,#128c7e);color:#fff" onclick="enviarConfirmPago()">📤 Enviar por WhatsApp</button>
+      <button class="btn ripple-host" style="background:linear-gradient(135deg,#25d366,#128c7e);color:#fff" onclick="enviarConfirmPago()">📤 Enviar por WhatsApp</button>
     </div>
   </div>
 </div>
@@ -3751,109 +3757,31 @@ async function waEnviarCampana(){
 
 // ── Config ──
 function waGetConfig(){
-  const token     = localStorage.getItem('wa_token')   ||'';
-  const phoneId   = localStorage.getItem('wa_phoneId') ||'';
-  const numero    = localStorage.getItem('wa_numero')  ||'';
-  const railwayUrl= (localStorage.getItem('railway_url')||'').replace(/\/+$/,'');
-  return {token, phoneId, numero, railwayUrl};
+  const token=localStorage.getItem('wa_token')||'';
+  const phoneId=localStorage.getItem('wa_phoneId')||'';
+  const numero=localStorage.getItem('wa_numero')||'';
+  return{token,phoneId,numero};
 }
 
 function waCargarConfig(){
-  const {token,phoneId,numero,railwayUrl}=waGetConfig();
+  const{token,phoneId,numero}=waGetConfig();
   const t=document.getElementById('waCfgToken');
   const p=document.getElementById('waCfgPhoneId');
   const n=document.getElementById('waCfgNumero');
-  const r=document.getElementById('waCfgRailway');
   if(t)t.value=token;
   if(p)p.value=phoneId;
   if(n)n.value=numero;
-  if(r)r.value=railwayUrl;
 }
 
 function waGuardarConfig(){
-  const token  =document.getElementById('waCfgToken').value.trim();
+  const token=document.getElementById('waCfgToken').value.trim();
   const phoneId=document.getElementById('waCfgPhoneId').value.trim();
-  const numero =document.getElementById('waCfgNumero').value.trim();
+  const numero=document.getElementById('waCfgNumero').value.trim();
   if(!token||!phoneId){snack('Completa token y Phone ID','err');return;}
   localStorage.setItem('wa_token',token);
   localStorage.setItem('wa_phoneId',phoneId);
   localStorage.setItem('wa_numero',numero);
   snack('Configuración guardada ✅');
-}
-
-function guardarRailwayUrl(){
-  const url=(document.getElementById('waCfgRailway').value||'').trim().replace(/\/+$/,'');
-  if(!url){snack('Ingresa la URL de Railway','err');return;}
-  localStorage.setItem('railway_url',url);
-  snack('URL de Railway guardada ✅');
-}
-
-async function testRailwayUrl(){
-  const url=(document.getElementById('waCfgRailway').value||'').trim().replace(/\/+$/,'');
-  const res=document.getElementById('railwayTestResult');
-  if(!url){res.style.color='var(--red2)';res.textContent='⚠️ Ingresa la URL primero';return;}
-  res.style.color='var(--text3)';res.textContent='⏳ Probando...';
-  try{
-    const r=await fetch(url+'/health',{signal:AbortSignal.timeout(9000)});
-    const d=await r.json();
-    if(d.ok){
-      res.style.color='var(--green2)';
-      res.textContent='✅ Railway conectado correctamente';
-      localStorage.setItem('railway_url',url);
-    } else {
-      res.style.color='var(--red2)';res.textContent='❌ El servidor respondió con error';
-    }
-  }catch(e){
-    res.style.color='var(--red2)';
-    res.textContent='❌ Sin conexión. Verifica que Railway esté desplegado y la URL sea correcta.';
-  }
-}
-
-/* ══════════════════════════════════════════════════
-   HELPER IA — Toda llamada a Claude pasa por aquí.
-   Railway tiene la ANTHROPIC_API_KEY de forma segura.
-   El browser NUNCA llama directo a api.anthropic.com
-   (CORS lo bloquearía igualmente).
-
-   Uso:
-     const texto = await callClaudeViaRailway(messages, system, maxTokens)
-     → retorna string con la respuesta, o null si falló
-══════════════════════════════════════════════════ */
-async function callClaudeViaRailway(messages, system='', maxTokens=400){
-  const {railwayUrl}=waGetConfig();
-
-  if(!railwayUrl){
-    snack('⚠️ Configura la URL de Railway en ⚙️ Config','err');
-    return null;
-  }
-
-  try{
-    const r=await fetch(railwayUrl+'/api/claude',{
-      method:'POST',
-      headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({messages, system, max_tokens:maxTokens}),
-      signal:AbortSignal.timeout(30000)
-    });
-
-    if(!r.ok){
-      const err=await r.json().catch(()=>({}));
-      snack('Error Railway '+r.status+': '+(err.error||''),'err');
-      return null;
-    }
-
-    const d=await r.json();
-    if(d.ok) return d.text;
-    snack('Error IA: '+(d.error||'desconocido'),'err');
-    return null;
-
-  }catch(e){
-    if(e.name==='TimeoutError'||e.name==='AbortError'){
-      snack('⏱️ El servidor tardó demasiado. Intenta de nuevo.','err');
-    } else {
-      snack('❌ No se conectó a Railway. ¿Está desplegado?','err');
-    }
-    return null;
-  }
 }
 
 async function waTestConexion(){
@@ -3874,47 +3802,34 @@ async function waTestConexion(){
 }
 
 // ── Modo Siesta ──
-// IMPORTANTE: leer estado desde Firebase (no localStorage)
-// El worker usa Firebase como fuente de verdad
 function waCargarEstadoSiesta(){
-  db.ref('wa_siesta').once('value').then(snap=>{
-    const data=snap.val()||{};
-    waSiestaActiva=data.activa===true;
-    localStorage.setItem('wa_siesta', waSiestaActiva);
-    _renderSiesta();
-    const msg=document.getElementById('waSiestaMsg');
-    if(msg && data.mensaje) msg.value=data.mensaje;
-  });
-}
-
-function _renderSiesta(){
+  waSiestaActiva=localStorage.getItem('wa_siesta')==='true';
   const toggle=document.getElementById('waToggle');
   const status=document.getElementById('waSiestaStatus');
-  if(toggle) toggle.classList.toggle('on', waSiestaActiva);
+  const msg=document.getElementById('waSiestaMsg');
+  if(toggle) toggle.classList.toggle('on',waSiestaActiva);
   if(status){
-    status.textContent=waSiestaActiva?'🟢 Bot activo — respondiendo automáticamente':'🔴 Bot desactivado';
+    status.textContent=waSiestaActiva?'🟢 Bot activo — respondiendo por ti':'🔴 Bot desactivado';
     status.style.color=waSiestaActiva?'var(--green2)':'var(--text3)';
   }
+  const savedMsg=localStorage.getItem('wa_siesta_msg');
+  if(savedMsg&&msg) msg.value=savedMsg;
+  db.ref('wa_siesta').set({activa:waSiestaActiva});
 }
 
 function waCambiarSiesta(){
   waSiestaActiva=!waSiestaActiva;
-  localStorage.setItem('wa_siesta', waSiestaActiva);
-  // update() en lugar de set() → preserva el campo "mensaje"
-  db.ref('wa_siesta').update({activa: waSiestaActiva}).then(()=>{
-    _renderSiesta();
-    snack(waSiestaActiva?'🤖 Bot activado':'⏹️ Bot desactivado');
-  });
+  localStorage.setItem('wa_siesta',waSiestaActiva);
+  waCargarEstadoSiesta();
+  snack(waSiestaActiva?'😴 Modo siesta activado':'⏹️ Modo siesta desactivado');
 }
 
 function waGuardarSiesta(){
   const msg=document.getElementById('waSiestaMsg').value.trim();
   if(!msg){snack('Escribe un mensaje','err');return;}
   localStorage.setItem('wa_siesta_msg',msg);
-  // update() para no borrar el campo "activa"
-  db.ref('wa_siesta').update({mensaje:msg}).then(()=>{
-    snack('Mensaje del bot guardado ✅');
-  });
+  db.ref('wa_siesta/mensaje').set(msg);
+  snack('Mensaje guardado ✅');
 }
 /* ── FIN WHATSAPP JS BASE ── */
 
@@ -4164,7 +4079,7 @@ function waAccionMasiva(segmento,tipo){
 // ── GENERADOR IA ─────────────────────────
 async function waGenerarConIA(){
   const s=sorteos[0];
-  const prompt=`Eres un experto en neuromarketing y ventas por WhatsApp para negocios de sorteos en Colombia.
+  const prompt=`Eres un experto en neuromarketing y ventas por WhatsApp para negocios de sorteos en Colombia. 
 Crea un mensaje de WhatsApp de ventas PODEROSO para el sorteo "${s?s.name:'Bol$illo Lleno x5'}" con premio mayor $${parseInt(s?.premioMayor||100000).toLocaleString()} COP.
 El mensaje debe:
 - Usar escasez y urgencia (principios de Cialdini)
@@ -4173,17 +4088,22 @@ El mensaje debe:
 - Usar emojis estratégicos
 - Terminar con un CTA claro
 - Sonar humano, cálido, colombiano
-Responde SOLO con el mensaje, sin explicaciones ni comillas.`;
-
+Responde SOLO con el mensaje, sin explicaciones.`;
   const ed=document.getElementById('waMsgEditor');
   if(ed) ed.value='🤖 Generando con IA...';
-
-  const txt=await callClaudeViaRailway([{role:'user',content:prompt}],'',300);
-  if(txt){
+  try{
+    const res=await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({model:'claude-haiku-4-5-20251001',max_tokens:300,messages:[{role:'user',content:prompt}]})
+    });
+    const data=await res.json();
+    const txt=(data.content&&data.content[0]&&data.content[0].text)||'Error generando';
     if(ed){ed.value=txt;waActualizarPreview();}
     snack('🤖 Mensaje generado con IA');
-  } else {
+  }catch(e){
     if(ed) ed.value='';
+    snack('Error generando','err');
   }
 }
 
@@ -4562,35 +4482,42 @@ async function enviarMsgBot(){
 
   const sorteoActivo=sorteos[0];
   const bizInfo=document.getElementById('kbBizInfo')?document.getElementById('kbBizInfo').value:'';
-  const kbTexto=Object.entries(kbData).filter(([k])=>k!=='_bizInfo').map(([,v])=>'P: '+v.pregunta+'\nR: '+v.respuesta).join('\n\n');
+  const kbTexto=Object.entries(kbData).filter(([k])=>k!=='_bizInfo').map(([k,v])=>'P: '+v.pregunta+'\nR: '+v.respuesta).join('\n\n');
 
-  const system=
-    'Eres el asistente de Bol$illo Lleno x5 — sorteos diarios en Colombia.\n\n'
-   +'NEGOCIO:\n'+(bizInfo||'Sorteos diarios basados en loterias colombianas.')+'\n\n'
-   +'SORTEO ACTIVO:\n'+(sorteoActivo
-      ?'Nombre: '+sorteoActivo.name+' | Premio Mayor: $'+parseInt(sorteoActivo.premioMayor||0).toLocaleString()+' | Precio: $'+parseInt(sorteoActivo.precioNumero||2000).toLocaleString()+' por numero'
-      :'Sin sorteo activo.')+'\n\n'
-   +'5 MANERAS DE GANAR:\n'
-   +'• PREMIO MAYOR: ultimas 2 cifras\n'
-   +'• SECO 1: primeras 2 cifras\n'
-   +'• SECO 2: 2 cifras del medio\n'
-   +'• SECO 3: primera y ultima cifra\n'
-   +'• SECO 4: ultimas 2 cifras invertidas\n\n'
-   +'PAGO: Nequi 3502429433 | Bre-B @NEQUICAM8170 | Camilo Andres Martinez Cordoba\n'
-   +'WEB: https://bolsillolleno.github.io/SorteosBolsilloLleno/\n\n'
-   +(kbTexto?'BASE DE CONOCIMIENTO:\n'+kbTexto+'\n\n':'')
-   +'INSTRUCCIONES: Español, tono amigable. Max 4 lineas. *asteriscos* para negrita.';
+  const systemPrompt='Eres el asistente virtual de Bol$illo Lleno x5, un negocio de sorteos diarios en Colombia manejado por Camilo Andres Martinez Cordoba.\n\n'
+    +'INFO DEL NEGOCIO:\n'+(bizInfo||'Sorteos diarios basados en loterias colombianas.')+'\n\n'
+    +'SORTEO ACTIVO:\n'+(sorteoActivo?'Nombre: '+sorteoActivo.name+'\nPremio Mayor: $'+parseInt(sorteoActivo.premioMayor||0).toLocaleString()+'\nPrecio: $'+parseInt(sorteoActivo.precioNumero||2000).toLocaleString()+' por numero\nCierre: '+(sorteoActivo.fecha?new Date(sorteoActivo.fecha).toLocaleString('es-CO'):'pronto'):'Sin sorteo activo.')+'\n\n'
+    +'5 MANERAS DE GANAR:\n'
+    +'PREMIO MAYOR: Si aciertas las ultimas 2 cifras\n'
+    +'SECO 1: Si aciertas las primeras 2 cifras\n'
+    +'SECO 2: Si aciertas las dos cifras del medio\n'
+    +'SECO 3: Si aciertas la primera y la ultima cifra\n'
+    +'SECO 4: Si aciertas las ultimas 2 cifras invertidas\n\n'
+    +'PAGO:\nNequi: 3502429433\nBre-B: @NEQUICAM8170\nTitular: Camilo Andres Martinez Cordoba\n\n'
+    +'PAGINA WEB: https://bolsillolleno.github.io/SorteosBolsilloLleno/\n\n'
+    +'BASE DE CONOCIMIENTO:\n'+(kbTexto||'(sin preguntas frecuentes aun)')+'\n\n'
+    +'INSTRUCCIONES: Responde en espanol, tono amigable. Si preguntan por pago da los datos de Nequi. Si preguntan numeros disponibles manda a la pagina web. Respuestas cortas maximo 4 lineas. Usa *asteriscos* para negrita.';
 
-  // ↓ Llama a Railway — nunca directamente a api.anthropic.com
-  const respuesta=await callClaudeViaRailway(botChatHistory, system, 400);
-  botQuitarTyping();
-
-  if(respuesta){
-    botAgregarMensaje('bot', respuesta);
-    botChatHistory.push({role:'assistant', content:respuesta});
+  try{
+    const res=await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({
+        model:'claude-haiku-4-5-20251001',
+        max_tokens:400,
+        system:systemPrompt,
+        messages:botChatHistory
+      })
+    });
+    const data=await res.json();
+    botQuitarTyping();
+    const respuesta=(data.content&&data.content[0]&&data.content[0].text)||'Lo siento, no pude procesar tu mensaje.';
+    botAgregarMensaje('bot',respuesta);
+    botChatHistory.push({role:'assistant',content:respuesta});
     if(botChatHistory.length>20) botChatHistory=botChatHistory.slice(-20);
-  } else {
-    botAgregarMensaje('bot','⚠️ Sin conexión con el servidor IA.\nVe a ⚙️ Config → Railway y verifica que la URL esté guardada.');
+  }catch(e){
+    botQuitarTyping();
+    botAgregarMensaje('bot','Error de conexion. Verifica tu internet.');
   }
 }
 
@@ -4760,20 +4687,19 @@ async function chatSugerirIA(){
     +'Responde SOLO con el mensaje, sin comillas ni explicación.\n'
     +'Sorteo activo: '+(s?s.name+' | Premio: $'+parseInt(s.premioMayor||0).toLocaleString():'—')+'\n'
     +'Nequi: 3502429433 | Bre-B: @NEQUICAM8170';
-
   const inp=document.getElementById('chatInputEl');
   if(inp){ inp.placeholder='🤖 Generando...'; inp.disabled=true; }
-
-  const txt=await callClaudeViaRailway(
-    [{role:'user',content:'Mensaje del cliente: '+ultimo}],
-    sys, 180
-  );
-
-  if(inp){
-    inp.placeholder='Escribe tu respuesta... (Enter = enviar)';
-    inp.disabled=false;
-    if(txt){ inp.value=txt; inp.focus(); }
-  }
+  try{
+    const r=await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({model:'claude-haiku-4-5-20251001',max_tokens:180,system:sys,
+        messages:[{role:'user',content:'Mensaje del cliente: '+ultimo}]})
+    });
+    const d=await r.json();
+    const txt=(d.content&&d.content[0]&&d.content[0].text)||'';
+    if(inp){ inp.value=txt; inp.focus(); }
+  }catch(e){ snack('Error IA','err'); }
+  finally{ if(inp){ inp.placeholder='Escribe tu respuesta... (Enter = enviar)'; inp.disabled=false; } }
 }
 
 // ── Respuestas rápidas ─────────────────────────────
@@ -4902,6 +4828,122 @@ function cargarNombresPlantillas(){
   Object.entries(ids).forEach(([k,id])=>{const e=document.getElementById(id);if(e&&p[k])e.value=p[k];});
 }
 /* ══ FIN PLANTILLAS ══ */
+<!-- PANEL WHATSAPP GOD-TIER -->
+<script>
+// Estado de conexión WhatsApp
+const waState = {
+  socket: null,
+  connected: false,
+  botActive: true,
+  qrCode: null
+};
+
+function initWhatsAppIntegration() {
+  // Conectar a Socket.io del backend
+  waState.socket = io(window.location.origin.includes('localhost') 
+    ? 'http://localhost:3000' 
+    : 'https://tu-app.railway.app');
+
+  waState.socket.on('connect', () => {
+    console.log('✅ Conectado al servidor WhatsApp');
+  });
+
+  waState.socket.on('connection-status', (status) => {
+    updateWAStatus(status);
+  });
+
+  waState.socket.on('qr-code', (qrUrl) => {
+    showQRCode(qrUrl);
+  });
+
+  waState.socket.on('bot-status', (active) => {
+    waState.botActive = active;
+    updateBotToggle();
+  });
+
+  waState.socket.on('chats-update', (chats) => {
+    renderChatsList(chats);
+  });
+
+  waState.socket.on('stats-update', (stats) => {
+    updateWAStats(stats);
+  });
+}
+
+function updateWAStatus(status) {
+  const indicators = {
+    connected: { text: '🟢 Conectado', color: '#10b981', icon: '✅' },
+    connecting: { text: '🟡 Conectando...', color: '#f59e0b', icon: '⏳' },
+    qr: { text: '📱 Escanea QR', color: '#3b82f6', icon: '📷' },
+    disconnected: { text: '🔴 Desconectado', color: '#ef4444', icon: '❌' }
+  };
+  
+  const ind = indicators[status] || indicators.disconnected;
+  
+  // Actualizar en la UI de WhatsApp tab
+  const statusEl = document.getElementById('waConnectionStatus');
+  if (statusEl) {
+    statusEl.innerHTML = `${ind.icon} ${ind.text}`;
+    statusEl.style.color = ind.color;
+  }
+}
+
+function showQRCode(qrUrl) {
+  const container = document.getElementById('waQRContainer');
+  if (container) {
+    container.innerHTML = `
+      <div style="background:#fff;padding:20px;border-radius:12px;text-align:center">
+        <p style="color:#333;margin-bottom:12px">📱 Escanea con WhatsApp</p>
+        <img src="${qrUrl}" style="max-width:280px;border-radius:8px">
+        <p style="color:#666;font-size:12px;margin-top:12px">
+          Ajustes → Dispositivos vinculados → Vincular
+        </p>
+      </div>
+    `;
+    container.style.display = 'block';
+  }
+}
+
+function toggleBot() {
+  waState.socket.emit('toggle-bot', !waState.botActive);
+}
+
+function updateBotToggle() {
+  const btn = document.getElementById('waBotToggle');
+  if (btn) {
+    btn.textContent = waState.botActive ? '🤖 Bot: ON' : '⭕ Bot: OFF';
+    btn.className = waState.botActive ? 'wa-toggle on' : 'wa-toggle';
+  }
+}
+
+// Renderizar lista de chats en tiempo real
+function renderChatsList(chats) {
+  const container = document.getElementById('waChatsList');
+  if (!container) return;
+  
+  if (!chats.length) {
+    container.innerHTML = '<div class="section-empty">Sin conversaciones activas</div>';
+    return;
+  }
+  
+  container.innerHTML = chats.map(chat => `
+    <div class="conv-item ${chat.unread ? 'unread' : ''}" onclick="openChat('${chat.jid}')">
+      <div class="lead-avatar">${chat.nombre?.[0] || '?'}</div>
+      <div class="lead-info">
+        <div class="lead-name">${chat.nombre} ${chat.tipo === 'CLIENTE' ? '⭐' : ''}</div>
+        <div class="lead-meta">${chat.lastMessage}</div>
+      </div>
+      ${chat.unread ? `<span class="badge bg-red">${chat.unread}</span>` : ''}
+    </div>
+  `).join('');
+}
+
+// Inicializar al cargar
+document.addEventListener('DOMContentLoaded', () => {
+  if (document.getElementById('s-whatsapp')) {
+    initWhatsAppIntegration();
+  }
+});
 </script>
 </body>
 </html>
